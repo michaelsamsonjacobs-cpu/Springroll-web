@@ -1,0 +1,64 @@
+{
+    "productName": "Springroll Team",
+    "version": "0.4.2",
+    "identifier": "ai.springroll.team",
+    "build": {
+        "beforeDevCommand": "npm run dev",
+        "beforeBuildCommand": "npm run build",
+        "devUrl": "http://localhost:5173",
+        "frontendDist": "../dist"
+    },
+    "app": {
+        "windows": [
+            {
+                "title": "Springroll Team",
+                "width": 1080,
+                "height": 720,
+                "decorations": true,
+                "transparent": true
+            }
+        ],
+        "security": {
+            "csp": null
+        }
+    },
+    "tauri": {
+        "allowlist": {
+            "all": false,
+            "shell": {
+                "all": false,
+                "execute": true,
+                "open": true,
+                "sidecar": true,
+                "scope": [
+                    {
+                        "name": "powershell",
+                        "cmd": "powershell.exe",
+                        "args": true
+                    },
+                    {
+                        "name": "sh",
+                        "cmd": "sh",
+                        "args": true
+                    }
+                ]
+            }
+        }
+    },
+    "bundle": {
+        "active": true,
+        "targets": "all",
+        "icon": [
+            "icons/32x32.png",
+            "icons/128x128.png",
+            "icons/icon.ico"
+        ],
+        "externalBin": [
+            "binaries/ollama"
+        ],
+        "shortDescription": "Sovereign AI Agentic Workstation",
+        "longDescription": "",
+        "copyright": "",
+        "category": "Productivity"
+    }
+}

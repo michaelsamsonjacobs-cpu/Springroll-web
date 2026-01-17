@@ -1,0 +1,30 @@
+[
+  {
+    "id": "franchise-launch",
+    "filename": "franchise-launch.md",
+    "label": "Franchise Launch Workflow",
+    "description": "How to launch a franchise legally using Springroll Team",
+    "path": ".agent/workflows/franchise-launch.md"
+  },
+  {
+    "id": "grants-autopilot",
+    "filename": "grants-autopilot.md",
+    "label": "GovGrant Autopilot Workflow",
+    "description": "Identifying high-value grants from grants.gov and sam.gov to maximize your project's ROI.",
+    "path": ".agent/workflows/grants-autopilot.md"
+  },
+  {
+    "id": "legal-work",
+    "filename": "legal-work.md",
+    "label": "LegalWork Pro Workflow",
+    "description": "Automated patent drafting and trademark scouting. Local, private, and secure IP management.",
+    "path": ".agent/workflows/legal-work.md"
+  },
+  {
+    "id": "platform-customization",
+    "filename": "platform-customization.md",
+    "label": "Platform Customization Workflow",
+    "description": "How to customize Springroll for any document type via conversation",
+    "path": ".agent/workflows/platform-customization.md"
+  }
+]

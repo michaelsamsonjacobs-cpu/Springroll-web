@@ -1,0 +1,13 @@
+{
+    "name": "springroll-automation-sidecar",
+    "version": "1.0.0",
+    "description": "Playwright sidecar for Springroll Team",
+    "main": "index.js",
+    "scripts": {
+        "start": "node index.js"
+    },
+    "dependencies": {
+        "playwright": "^1.40.0",
+        "uuid": "^9.0.0"
+    }
+}
