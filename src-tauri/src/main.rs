@@ -11,6 +11,12 @@ fn greet(name: &str) -> String {
 }
 
 #[tauri::command]
+fn read_file_content(path: &str) -> Result<String, String> {
+    std::fs::read_to_string(path)
+        .map_err(|e| format!("Failed to read file: {}", e))
+}
+
+#[tauri::command]
 fn get_system_info() -> String {
     // Get GPU info via nvidia-smi
     let gpu_info = match std::process::Command::new("nvidia-smi")
@@ -105,10 +111,12 @@ fn watch_directory(handle: tauri::AppHandle, path: String) -> String {
     use notify::{Watcher, RecursiveMode, Result, Event};
     use std::sync::mpsc;
     use std::time::Duration;
+    use tauri::Emitter; // Tauri 2 emitter trait
 
     let (tx, rx) = mpsc::channel::<Result<Event>>();
     
     let handle_clone = handle.clone();
+    let path_clone = path.clone(); // Clone before moving into thread
     std::thread::spawn(move || {
         let mut watcher = notify::recommended_watcher(move |res: Result<Event>| {
             if let Ok(event) = res {
@@ -116,7 +124,7 @@ fn watch_directory(handle: tauri::AppHandle, path: String) -> String {
             }
         }).expect("Failed to create watcher");
 
-        watcher.watch(std::path::Path::new(&path), RecursiveMode::Recursive)
+        watcher.watch(std::path::Path::new(&path_clone), RecursiveMode::Recursive)
             .expect("Failed to watch path");
 
         // Keep thread alive and emit events
@@ -141,7 +149,7 @@ fn main() {
         .plugin(tauri_plugin_shell::init())
         .plugin(tauri_plugin_fs::init())
         .plugin(tauri_plugin_dialog::init())
-        .invoke_handler(tauri::generate_handler![greet, get_system_info, run_automation_sidecar, launch_app, start_ollama, watch_directory])
+        .invoke_handler(tauri::generate_handler![greet, read_file_content, get_system_info, run_automation_sidecar, launch_app, start_ollama, watch_directory])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

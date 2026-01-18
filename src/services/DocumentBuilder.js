@@ -5,6 +5,7 @@
  */
 
 import { AIService } from './GeminiService';
+import FeedbackService from './FeedbackService';
 
 // Document Templates Registry
 export const DOCUMENT_TEMPLATES = {
@@ -168,13 +169,58 @@ export const DocumentBuilder = {
         localStorage.setItem(DOCS_KEY, JSON.stringify(docs));
     },
 
-    // Generate section content using AI with agent context
+    // Generate section content using AI with agent context + feedback enrichment
     async generateSection(templateId, sectionId, context = {}, agentContext = null) {
         const template = this.getTemplate(templateId);
         if (!template) throw new Error('Template not found');
 
         const section = template.sections.find(s => s.id === sectionId);
         if (!section) throw new Error('Section not found');
+
+        // === FEEDBACK-DRIVEN PROMPT ENRICHMENT ===
+        let styleGuidance = '';
+        let terminologyGuidance = '';
+        let exampleOutputs = '';
+        let feedbackStats = { terminology: 0, style: null, examples: 0 };
+
+        try {
+            // Get learned terminology patterns (min 5 occurrences)
+            const terminology = await FeedbackService.getTerminologyPatterns(templateId);
+            if (terminology.length > 0) {
+                feedbackStats.terminology = terminology.length;
+                terminologyGuidance = `\n\n[TERMINOLOGY - Use these preferred terms]\n`;
+                terminology.slice(0, 10).forEach(t => {
+                    terminologyGuidance += `- Use "${t.to}" instead of "${t.from}" (${t.count} user corrections)\n`;
+                });
+            }
+
+            // Get style preferences (min 10 samples)
+            const style = await FeedbackService.getStylePreferences(templateId);
+            if (style) {
+                feedbackStats.style = style;
+                styleGuidance = `\n\n[STYLE PREFERENCES - Based on ${style.sampleCount} samples]\n`;
+                styleGuidance += `- Target sentence length: ~${style.avgSentenceLength} words\n`;
+                styleGuidance += `- Content tendency: ${style.lengthTendency === 'expand' ? 'User prefers more detail' : style.lengthTendency === 'condense' ? 'User prefers concise content' : 'Balanced length'}\n`;
+                styleGuidance += `- Formatting: ${style.prefersBullets ? 'Use bullet points for lists' : 'Use flowing prose'}\n`;
+            }
+
+            // Get example outputs that user has accepted (few-shot)
+            const examples = await FeedbackService.getExampleOutputs(templateId, sectionId, 2);
+            if (examples.length > 0) {
+                feedbackStats.examples = examples.length;
+                exampleOutputs = `\n\n[EXAMPLES - Content this user has approved]\n`;
+                examples.forEach((ex, i) => {
+                    exampleOutputs += `--- Example ${i + 1} ---\n${ex.slice(0, 500)}${ex.length > 500 ? '...' : ''}\n`;
+                });
+            }
+
+            if (feedbackStats.terminology > 0 || feedbackStats.style || feedbackStats.examples > 0) {
+                console.log(`[Feedback] Enriching prompt with ${feedbackStats.terminology} terms, ${feedbackStats.examples} examples`);
+            }
+        } catch (e) {
+            // Gracefully continue without feedback enrichment
+            console.warn('[Feedback] Could not load learned patterns:', e.message);
+        }
 
         // Build context string from agentContext
         let contextInfo = '';
@@ -213,10 +259,10 @@ export const DocumentBuilder = {
         // Get agent's specialized system prompt
         const agentPrompt = agentContext?.agent?.systemPrompt || '';
 
-        // Build the full generation prompt
+        // Build the full generation prompt with feedback enrichment
         const fullPrompt = `Generate the "${section.name}" section for this document.
 SECTION GUIDANCE: ${section.prompt}
-
+${styleGuidance}${terminologyGuidance}${exampleOutputs}
 CONTEXT:
 - Company: ${context.companyName || 'The Company'}
 - Industry: ${context.industry || 'Technology'}
@@ -234,12 +280,25 @@ Write professional, compelling content for this section. Be specific and use the
             generatedContent = `## ${section.name}\n\n[Unable to generate with AI - ${err.message}]\n\nPlease ensure your AI provider (Ollama or Gemini) is configured in Settings.`;
         }
 
+        // Generate a tracking ID for feedback capture
+        const generationId = crypto.randomUUID();
+
         return {
             sectionId,
             sectionName: section.name,
             prompt: section.prompt,
             content: generatedContent,
-            generatedAt: new Date().toISOString()
+            generatedAt: new Date().toISOString(),
+            // Feedback tracking metadata
+            _generation: {
+                id: generationId,
+                templateId,
+                enrichedWith: {
+                    terminology: feedbackStats.terminology,
+                    style: !!feedbackStats.style,
+                    examples: feedbackStats.examples
+                }
+            }
         };
     },
 
@@ -304,5 +363,82 @@ Write professional, compelling content for this section. Be specific and use the
 
         html += `</body>\n</html>`;
         return html;
+    },
+
+    // === FEEDBACK CAPTURE HELPERS ===
+
+    /**
+     * Capture user edit to a generated section
+     * Call this when user modifies generated content and saves
+     */
+    async captureEdit(docId, section, editedContent, context = {}) {
+        if (!section?._generation) {
+            console.warn('[Feedback] Cannot capture - missing generation metadata');
+            return null;
+        }
+
+        return FeedbackService.captureEdit(
+            docId,
+            section._generation.templateId,
+            section.sectionId,
+            section.content,
+            editedContent,
+            context
+        );
+    },
+
+    /**
+     * Capture user acceptance (content kept as-is)
+     * Call this when user explicitly accepts or saves without edits
+     */
+    async captureAcceptance(docId, section, context = {}) {
+        if (!section?._generation) return null;
+
+        return FeedbackService.captureAcceptance(
+            docId,
+            section._generation.templateId,
+            section.sectionId,
+            section.content,
+            context
+        );
+    },
+
+    /**
+     * Capture user rejection (regenerate requested)
+     * Call this when user clicks regenerate button
+     */
+    async captureRejection(docId, section, reason = '', context = {}) {
+        if (!section?._generation) return null;
+
+        return FeedbackService.captureRejection(
+            docId,
+            section._generation.templateId,
+            section.sectionId,
+            section.content,
+            reason,
+            context
+        );
+    },
+
+    /**
+     * Get feedback statistics for UI display
+     */
+    async getFeedbackStats() {
+        return FeedbackService.getStats();
+    },
+
+    /**
+     * Export user's style profile (for sharing/backup)
+     */
+    async exportStyleProfile() {
+        return FeedbackService.exportStyleProfile();
+    },
+
+    /**
+     * Import a style profile
+     */
+    async importStyleProfile(profileData) {
+        return FeedbackService.importStyleProfile(profileData);
     }
 };
+

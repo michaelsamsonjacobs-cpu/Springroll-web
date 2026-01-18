@@ -14,6 +14,7 @@ export const FileExplorer = ({ onFileSelect }) => {
     const [expanded, setExpanded] = useState({}); // { workspaceRoot: boolean }
     const [annotationCounts, setAnnotationCounts] = useState({});
     const [contextMenu, setContextMenu] = useState(null); // { x, y, filePath }
+    const [recentChanges, setRecentChanges] = useState([]); // Track recent file changes
 
     useEffect(() => {
         loadWorkspaces();
@@ -24,8 +25,24 @@ export const FileExplorer = ({ onFileSelect }) => {
         (async () => {
             unlisten = await listen('file-change', (event) => {
                 console.log('[FileExplorer] File change detected:', event.payload);
+                // Add to recent changes list (max 5)
+                setRecentChanges(prev => [
+                    { ...event.payload, timestamp: Date.now() },
+                    ...prev.slice(0, 4)
+                ]);
                 loadWorkspaces(); // Auto-refresh
             });
+
+            // Start watching all existing workspaces
+            const existingWorkspaces = SearchService.getWorkspaces();
+            for (const ws of existingWorkspaces) {
+                try {
+                    await invoke('watch_directory', { path: ws.root });
+                    console.log('[FileExplorer] Watching:', ws.root);
+                } catch (e) {
+                    console.warn('[FileExplorer] Could not watch (Tauri not available?):', e);
+                }
+            }
         })();
 
         return () => {
@@ -62,6 +79,14 @@ export const FileExplorer = ({ onFileSelect }) => {
             await SearchService.indexDirectory(path);
             loadWorkspaces();
             setExpanded(prev => ({ ...prev, [path]: true })); // Auto-expand new
+
+            // Start watching the new folder for real-time updates
+            try {
+                await invoke('watch_directory', { path });
+                console.log('[FileExplorer] Now watching:', path);
+            } catch (watchErr) {
+                console.warn('[FileExplorer] Could not start watching:', watchErr);
+            }
         } catch (e) {
             console.error(e);
             alert("Failed to index directory: " + e);

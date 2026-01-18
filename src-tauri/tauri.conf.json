@@ -22,29 +22,6 @@
             "csp": null
         }
     },
-    "tauri": {
-        "allowlist": {
-            "all": false,
-            "shell": {
-                "all": false,
-                "execute": true,
-                "open": true,
-                "sidecar": true,
-                "scope": [
-                    {
-                        "name": "powershell",
-                        "cmd": "powershell.exe",
-                        "args": true
-                    },
-                    {
-                        "name": "sh",
-                        "cmd": "sh",
-                        "args": true
-                    }
-                ]
-            }
-        }
-    },
     "bundle": {
         "active": true,
         "targets": "all",

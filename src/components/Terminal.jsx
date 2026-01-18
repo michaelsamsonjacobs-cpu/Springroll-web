@@ -3,13 +3,16 @@ import { Terminal as XTerm } from 'xterm';
 import { FitAddon } from 'xterm-addon-fit';
 import 'xterm/css/xterm.css';
 
-// Dynamically import Tauri shell to avoid breaking web-only builds
-let shell = null;
-import('@tauri-apps/api/shell').then(module => {
-    shell = module;
-}).catch(err => {
-    console.log("Tauri shell not available (web mode?)", err);
-});
+// Use runtime detection for Tauri to avoid Vite static import analysis
+// The @tauri-apps/api/shell module is only available in Tauri context
+const getTauriShell = () => {
+    // Check if we're in Tauri context
+    if (typeof window !== 'undefined' && window.__TAURI__) {
+        // Dynamically access the shell APIs if available
+        return window.__TAURI__.shell || null;
+    }
+    return null;
+};
 
 const theme = {
     background: '#0f172a', // Slate 900
@@ -138,6 +141,7 @@ const Terminal = ({ isVisible }) => {
         // For now, we always run from root or allow user to chain commands.
 
         try {
+            const shell = getTauriShell();
             if (!shell) {
                 term.writeln('\x1b[31mTauri Shell not available. Are you in a browser?\x1b[0m');
                 prompt(term);
