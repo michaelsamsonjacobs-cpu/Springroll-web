@@ -5,7 +5,7 @@
     "type": "module",
     "scripts": {
         "dev": "vite",
-        "build": "vite build",
+        "build": "node scripts/build-prod.js",
         "preview": "vite preview",
         "sync-workflows": "node scripts/sync-workflows.js",
         "tauri": "tauri"
