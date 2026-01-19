@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Members Portal | Springroll Team</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700&family=Inter:wght@300;400;500;600&display=swap"
+        rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        springroll: { dark: '#020617', card: '#0f172a', blue: '#3b82f6', purple: '#a855f7', text: '#f8fafc' }
+                    },
+                    fontFamily: { sora: ['Sora', 'sans-serif'], inter: ['Inter', 'sans-serif'] }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: #020617;
+            color: #f8fafc;
+        }
+
+        .text-gradient {
+            background: linear-gradient(135deg, #60a5fa 0%, #c084fc 50%, #f472b6 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .glass-card {
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .glow-blue {
+            box-shadow: 0 0 50px -10px rgba(59, 130, 246, 0.3);
+        }
+    </style>
+</head>
+
+<body class="font-inter antialiased">
+
+    <!-- Nav -->
+    <nav class="fixed top-0 w-full z-50 border-b border-white/5 bg-[#020617]/80 backdrop-blur-xl">
+        <div class="max-w-7xl mx-auto px-6 h-16 flex justify-between items-center">
+            <a href="/" class="flex items-center gap-3">
+                <div
+                    class="w-8 h-8 bg-gradient-to-br from-blue-600 to-purple-600 rounded-lg flex items-center justify-center text-white font-bold font-sora shadow-lg">
+                    S</div>
+                <span class="font-sora font-semibold text-lg tracking-tight">springroll team</span>
+            </a>
+            <div class="flex items-center gap-4">
+                <div class="flex items-center gap-3">
+                    <img id="user-avatar" src="" alt="" class="w-8 h-8 rounded-full bg-slate-700">
+                    <span id="user-name" class="text-sm font-medium">Loading...</span>
+                </div>
+                <button onclick="SpringrollAuth.signOut()"
+                    class="text-sm text-slate-400 hover:text-white transition-colors">
+                    Sign Out
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Members Content -->
+    <section class="pt-32 pb-20 px-6 max-w-4xl mx-auto">
+        <div class="text-center mb-12">
+            <h1 class="text-3xl md:text-4xl font-sora font-bold mb-4">
+                Welcome to <span class="text-gradient">Springroll</span>
+            </h1>
+            <p id="user-email" class="text-slate-400">user@example.com</p>
+        </div>
+
+        <!-- Subscription Status -->
+        <div class="glass-card p-8 rounded-3xl mb-8">
+            <div class="flex items-center justify-between mb-6">
+                <div>
+                    <h2 class="text-xl font-sora font-bold mb-2">Your Subscription</h2>
+                    <p class="text-sm text-slate-400">
+                        Plan: <span id="plan-name" class="text-white font-semibold">FREE</span>
+                    </p>
+                </div>
+                <div class="text-right">
+                    <p class="text-sm text-slate-400 mb-1">Status</p>
+                    <p id="subscription-status" class="text-yellow-400 font-semibold">No active subscription</p>
+                </div>
+            </div>
+
+            <!-- Upgrade CTA (shown if not subscribed) -->
+            <div id="upgrade-section" class="border-t border-white/10 pt-6">
+                <p class="text-sm text-slate-400 mb-4">
+                    Upgrade to Pro or Team to unlock all features and download the Windows app.
+                </p>
+                <a href="pricing.html"
+                    class="inline-block bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 py-3 rounded-xl font-bold hover:opacity-90 transition-opacity">
+                    View Plans
+                </a>
+            </div>
+        </div>
+
+        <!-- Download Section -->
+        <div class="glass-card p-8 rounded-3xl glow-blue">
+            <div class="flex items-center gap-4 mb-6">
+                <div
+                    class="w-16 h-16 bg-gradient-to-br from-blue-600 to-purple-600 rounded-2xl flex items-center justify-center">
+                    <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                    </svg>
+                </div>
+                <div>
+                    <h2 class="text-xl font-sora font-bold">Download Springroll Team</h2>
+                    <p class="text-sm text-slate-400">Windows 10/11 • 64-bit • v1.0.0</p>
+                </div>
+            </div>
+
+            <button id="download-btn" onclick="SpringrollAuth.downloadApp()" disabled
+                class="w-full bg-slate-700 text-slate-400 px-8 py-4 rounded-xl font-bold cursor-not-allowed">
+                Active subscription required
+            </button>
+
+            <p class="text-xs text-slate-500 mt-4 text-center">
+                Your download will be tracked for support purposes. By downloading, you agree to our terms of service.
+            </p>
+        </div>
+
+        <!-- Quick Links -->
+        <div class="mt-8 grid md:grid-cols-3 gap-4">
+            <a href="#" class="glass-card p-6 rounded-2xl text-center hover:bg-white/5 transition-colors">
+                <div class="text-2xl mb-2">📚</div>
+                <p class="font-semibold">Documentation</p>
+            </a>
+            <a href="#" class="glass-card p-6 rounded-2xl text-center hover:bg-white/5 transition-colors">
+                <div class="text-2xl mb-2">💬</div>
+                <p class="font-semibold">Discord Community</p>
+            </a>
+            <a href="mailto:support@springroll.ai"
+                class="glass-card p-6 rounded-2xl text-center hover:bg-white/5 transition-colors">
+                <div class="text-2xl mb-2">🎧</div>
+                <p class="font-semibold">Get Support</p>
+            </a>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="py-12 border-t border-white/5 text-center text-slate-500 text-sm">
+        <p>© 2026 Springroll AI. The Sovereign Workstation.</p>
+    </footer>
+
+    <script src="js/auth.js"></script>
+    <script>
+        // Initialize members page on load
+        document.addEventListener('DOMContentLoaded', () => {
+            SpringrollAuth.initMembersPage();
+        });
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Springroll Team | Sovereign Agentic Workstation</title>
+    <link rel="icon" type="image/png" href="favicon.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap"
+        rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        springroll: {
+                            dark: '#020617',
+                            card: '#0f172a',
+                            blue: '#3b82f6',
+                            purple: '#a855f7',
+                            text: '#f8fafc'
+                        }
+                    },
+                    fontFamily: {
+                        sora: ['Sora', 'sans-serif'],
+                        inter: ['Inter', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    },
+                    animation: {
+                        'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                        'float': 'float 6s ease-in-out infinite',
+                    },
+                    keyframes: {
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0)' },
+                            '50%': { transform: 'translateY(-20px)' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: #020617;
+            color: #f8fafc;
+        }
+
+        .text-gradient {
+            background: linear-gradient(135deg, #60a5fa 0%, #c084fc 50%, #f472b6 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .bg-grid {
+            background-size: 40px 40px;
+            background-image: linear-gradient(to right, rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+        }
+
+        .glass-card {
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .glow-blue {
+            box-shadow: 0 0 50px -10px rgba(59, 130, 246, 0.3);
+        }
+    </style>
+</head>
+
+<body class="font-inter antialiased selection:bg-blue-500/30">
+
+    <!-- Background Effects -->
+    <div class="fixed inset-0 bg-grid pointer-events-none z-0"></div>
+    <div
+        class="fixed top-0 left-1/4 w-[500px] h-[500px] bg-blue-600/20 rounded-full blur-[128px] -z-10 animate-pulse-slow">
+    </div>
+    <div class="fixed bottom-0 right-1/4 w-[500px] h-[500px] bg-purple-600/20 rounded-full blur-[128px] -z-10 animate-pulse-slow"
+        style="animation-delay: 2s"></div>
+
+    <!-- Nav -->
+    <nav class="fixed top-0 w-full z-50 border-b border-white/5 bg-[#020617]/80 backdrop-blur-xl">
+        <div class="max-w-7xl mx-auto px-6 h-16 flex justify-between items-center">
+            <div class="flex items-center gap-3">
+                <img src="logo.png" alt="Springroll" class="w-8 h-8 rounded-lg shadow-lg">
+                <span class="font-sora font-semibold text-lg tracking-tight">springroll team</span>
+            </div>
+            <div class="hidden md:flex items-center gap-8 text-sm font-medium text-slate-400">
+                <a href="#features" class="hover:text-white transition-colors">Agents</a>
+                <a href="#industries" class="hover:text-white transition-colors">Industries</a>
+                <a href="#security" class="hover:text-white transition-colors">Sovereignty</a>
+                <a href="pricing.html" class="hover:text-white transition-colors">Pricing</a>
+            </div>
+            <div class="flex items-center gap-3">
+                <button onclick="SpringrollAuth.signInWithGoogle()"
+                    class="text-sm text-slate-400 hover:text-white transition-colors hidden md:block">
+                    Members Login
+                </button>
+                <a href="pricing.html"
+                    class="bg-white text-slate-950 px-5 py-2 rounded-full text-xs font-bold uppercase tracking-wide hover:bg-blue-50 transition-colors shadow-lg shadow-white/10">
+                    Get Started
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero -->
+    <section class="relative pt-32 pb-20 px-6 max-w-7xl mx-auto text-center z-10">
+        <div
+            class="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-white/10 bg-white/5 backdrop-blur-md mb-8 animate-fade-in-up">
+            <div class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
+            <span class="text-[10px] font-bold uppercase tracking-widest text-slate-300">Phase 1: Windows
+                Workstation</span>
+        </div>
+
+        <h1 class="text-5xl md:text-7xl font-sora font-bold leading-tight mb-8 tracking-tight">
+            The Workstation for <br />
+            <span class="text-gradient">Sovereign Intelligence.</span>
+        </h1>
+
+        <p class="text-lg md:text-xl text-slate-400 max-w-2xl mx-auto leading-relaxed mb-12 font-light">
+            Stop pasting your IP into the cloud. Springroll Team brings
+            <span class="text-blue-400 font-medium">agentic workflows</span>—grants, legal, dev, and
+            <span class="text-emerald-400 font-medium">investor outreach</span>—directly to your local files.
+        </p>
+
+        <div class="flex flex-col md:flex-row items-center justify-center gap-6 mb-20">
+            <a href="/app/"
+                class="w-full md:w-auto bg-blue-600 text-white px-8 py-4 rounded-xl text-sm font-bold uppercase tracking-wider hover:bg-blue-500 transition-all shadow-xl shadow-blue-600/20 hover:scale-105">
+                Try it Live (WebGPU)
+            </a>
+            <a href="pricing.html"
+                class="w-full md:w-auto bg-white/5 border border-white/10 text-white px-8 py-4 rounded-xl text-sm font-bold uppercase tracking-wider hover:bg-white/10 transition-all">
+                Download for Windows
+            </a>
+            <div class="flex items-center gap-4 text-xs font-mono text-slate-500 ml-4 hidden md:flex">
+                <span class="flex items-center gap-1"><span class="text-green-500">✓</span> No Install</span>
+                <span class="flex items-center gap-1"><span class="text-green-500">✓</span> Local Indexing</span>
+                <span class="flex items-center gap-1"><span class="text-green-500">✓</span> RTX Optimized</span>
+            </div>
+        </div>
+
+        <!-- UI Mockup -->
+        <div class="relative max-w-5xl mx-auto animate-float">
+            <div class="absolute inset-0 bg-blue-500/10 blur-3xl -z-10 rounded-full"></div>
+            <div class="glass-card rounded-[24px] overflow-hidden shadow-2xl glow-blue border-t border-white/20">
+                <!-- Mac-style header for the mockup -->
+                <div class="h-8 bg-slate-900/90 border-b border-white/5 flex items-center px-4 gap-2">
+                    <div class="w-2.5 h-2.5 rounded-full bg-red-500/80"></div>
+                    <div class="w-2.5 h-2.5 rounded-full bg-yellow-500/80"></div>
+                    <div class="w-2.5 h-2.5 rounded-full bg-green-500/80"></div>
+                    <span class="ml-3 text-[10px] text-slate-500 font-mono">Springroll Team — Documents</span>
+                </div>
+                <!-- Actual Screenshot -->
+                <img src="hero-mockup.png"
+                    alt="Springroll Team Dashboard showing SBIR proposal generation with $1.2M pipeline" class="w-full">
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Grid -->
+    <section id="features" class="py-32 px-6 max-w-7xl mx-auto">
+        <div class="text-center mb-20">
+            <h2 class="text-3xl md:text-5xl font-sora font-bold mb-6">Built for <span class="text-gradient">Complex
+                    Work.</span></h2>
+            <p class="text-slate-400">Generic chatbots can't handle your filesystem. Springroll can.</p>
+        </div>
+
+        <div class="grid md:grid-cols-5 gap-5">
+            <!-- DocBuilder (NEW) -->
+            <div
+                class="glass-card p-6 rounded-3xl hover:bg-white/5 transition-colors group cursor-pointer relative overflow-hidden border border-pink-500/20">
+                <div
+                    class="absolute top-0 right-0 w-24 h-24 bg-pink-500/10 rounded-bl-[80px] -mr-6 -mt-6 transition-transform group-hover:scale-110">
+                </div>
+                <div
+                    class="absolute top-3 right-3 px-2 py-1 bg-pink-500/20 rounded-full text-[9px] text-pink-400 font-bold uppercase">
+                    New</div>
+                <div
+                    class="w-10 h-10 bg-slate-900 border border-white/10 rounded-xl flex items-center justify-center text-pink-400 mb-4 relative z-10">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"
+                            d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                </div>
+                <h3 class="text-lg font-bold font-sora mb-2">DocBuilder</h3>
+                <p class="text-xs text-slate-400 leading-relaxed">
+                    Pitch decks, exec summaries, one-pagers. AI-generated from your local files.
+                </p>
+            </div>
+
+            <!-- GTMAgent -->
+            <div
+                class="glass-card p-6 rounded-3xl hover:bg-white/5 transition-colors group cursor-pointer relative overflow-hidden border border-emerald-500/20">
+                <div
+                    class="absolute top-0 right-0 w-24 h-24 bg-emerald-500/10 rounded-bl-[80px] -mr-6 -mt-6 transition-transform group-hover:scale-110">
+                </div>
+                <div
+                    class="w-10 h-10 bg-slate-900 border border-white/10 rounded-xl flex items-center justify-center text-emerald-400 mb-4 relative z-10">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"
+                            d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+                    </svg>
+                </div>
+                <h3 class="text-lg font-bold font-sora mb-2">GTMAgent</h3>
+                <p class="text-xs text-slate-400 leading-relaxed">
+                    Investor outreach & customer GTM. Find VCs, score leads, send emails.
+                </p>
+            </div>
+
+            <!-- GrantAgent -->
+            <div
+                class="glass-card p-8 rounded-3xl hover:bg-white/5 transition-colors group cursor-pointer relative overflow-hidden">
+                <div
+                    class="absolute top-0 right-0 w-32 h-32 bg-green-500/10 rounded-bl-[100px] -mr-8 -mt-8 transition-transform group-hover:scale-110">
+                </div>
+                <div
+                    class="w-12 h-12 bg-slate-900 border border-white/10 rounded-xl flex items-center justify-center text-green-400 mb-6 relative z-10">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"
+                            d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                </div>
+                <h3 class="text-xl font-bold font-sora mb-3">GrantAgent</h3>
+                <p class="text-sm text-slate-400 leading-relaxed">
+                    Scans grants.gov and drafts compliance-perfect proposals using your local docs.
+                </p>
+            </div>
+
+            <!-- LegalAgent -->
+            <div
+                class="glass-card p-8 rounded-3xl hover:bg-white/5 transition-colors group cursor-pointer relative overflow-hidden">
+                <div
+                    class="absolute top-0 right-0 w-32 h-32 bg-purple-500/10 rounded-bl-[100px] -mr-8 -mt-8 transition-transform group-hover:scale-110">
+                </div>
+                <div
+                    class="w-12 h-12 bg-slate-900 border border-white/10 rounded-xl flex items-center justify-center text-purple-400 mb-6 relative z-10">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"
+                            d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3" />
+                    </svg>
+                </div>
+                <h3 class="text-xl font-bold font-sora mb-3">LegalAgent</h3>
+                <p class="text-sm text-slate-400 leading-relaxed">
+                    Patent scouting and trademark drafting. Your IP stays strictly local.
+                </p>
+            </div>
+
+            <!-- DevAgent -->
+            <div
+                class="glass-card p-8 rounded-3xl hover:bg-white/5 transition-colors group cursor-pointer relative overflow-hidden">
+                <div
+                    class="absolute top-0 right-0 w-32 h-32 bg-blue-500/10 rounded-bl-[100px] -mr-8 -mt-8 transition-transform group-hover:scale-110">
+                </div>
+                <div
+                    class="w-12 h-12 bg-slate-900 border border-white/10 rounded-xl flex items-center justify-center text-blue-400 mb-6 relative z-10">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"
+                            d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
+                    </svg>
+                </div>
+                <h3 class="text-xl font-bold font-sora mb-3">DevAgent</h3>
+                <p class="text-sm text-slate-400 leading-relaxed">
+                    A code-aware pair programmer that understands your entire repo.
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Hot Folder Section (Sovereignty) -->
+    <section id="security" class="py-20 px-6 max-w-7xl mx-auto border-t border-white/5">
+        <div class="glass-card p-12 rounded-[40px] relative overflow-hidden">
+            <div class="absolute inset-0 bg-gradient-to-r from-blue-900/20 to-transparent"></div>
+            <div class="relative z-10 flex flex-col md:flex-row items-center gap-12">
+                <div class="flex-1 space-y-6 text-left">
+                    <h2 class="text-3xl md:text-4xl font-sora font-bold">Hot Folders. <br /><span
+                            class="text-slate-400">Just drop it in.</span></h2>
+                    <p class="text-slate-400 leading-relaxed">
+                        Designate any folder on your OS as a "Hot Folder." Drop a PDF, and Springroll automatically
+                        indexes it, extracts the context, and prepares it for your next query.
+                    </p>
+                    <ul class="space-y-3 text-sm text-slate-300 font-mono">
+                        <li class="flex items-center gap-3">
+                            <span class="w-1.5 h-1.5 bg-blue-500 rounded-full"></span> Real-time OS File Watching
+                        </li>
+                        <li class="flex items-center gap-3">
+                            <span class="w-1.5 h-1.5 bg-blue-500 rounded-full"></span> Auto-Vectorization
+                        </li>
+                        <li class="flex items-center gap-3">
+                            <span class="w-1.5 h-1.5 bg-blue-500 rounded-full"></span> Instant RAG Availability
+                        </li>
+                    </ul>
+                </div>
+                <div class="flex-1 w-full max-w-md">
+                    <div class="bg-slate-950 border border-white/10 rounded-2xl p-6 font-mono text-xs shadow-2xl">
+                        <div class="flex items-center gap-2 mb-4 text-slate-500 border-b border-white/5 pb-2">
+                            <div class="w-3 h-3 rounded-full bg-red-500/20"></div>
+                            <div class="w-3 h-3 rounded-full bg-yellow-500/20"></div>
+                            <span>~/Documents/Springroll_Hot</span>
+                        </div>
+                        <div class="space-y-3">
+                            <div class="flex justify-between text-slate-300">
+                                <span>Draft_V2.pdf</span>
+                                <span class="text-green-500">INDEXED</span>
+                            </div>
+                            <div class="flex justify-between text-slate-300">
+                                <span>Patent_Claims.docx</span>
+                                <span class="text-green-500">INDEXED</span>
+                            </div>
+                            <div class="flex justify-between text-slate-500">
+                                <span>Research_Notes.md</span>
+                                <span class="text-blue-500 animate-pulse">PROCESSING...</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+    </section>
+
+    <!-- Industries Section -->
+    <section id="industries" class="py-24 px-6 max-w-7xl mx-auto">
+        <div class="text-center mb-16">
+            <p class="text-sm font-mono text-blue-400 mb-4 tracking-wider uppercase">Data Sovereignty Matters</p>
+            <h2 class="text-3xl md:text-5xl font-sora font-bold mb-6">Built for Industries <span
+                    class="text-gradient">Where Privacy is Law.</span></h2>
+            <p class="text-slate-400 max-w-2xl mx-auto">Cloud AI exposes your most sensitive data. Springroll processes
+                everything locally—your secrets never leave your device.</p>
+        </div>
+
+        <div class="grid md:grid-cols-5 gap-4">
+            <!-- Legal -->
+            <div class="glass-card p-6 rounded-2xl text-center hover:bg-white/5 transition-colors group">
+                <div class="text-3xl mb-3">⚖️</div>
+                <h3 class="font-sora font-bold text-sm mb-2">Legal</h3>
+                <p class="text-[10px] text-slate-500 leading-relaxed">Attorney-client privilege protected. Briefs,
+                    contracts, discovery—never in the cloud.</p>
+            </div>
+
+            <!-- Healthcare -->
+            <div class="glass-card p-6 rounded-2xl text-center hover:bg-white/5 transition-colors group">
+                <div class="text-3xl mb-3">🏥</div>
+                <h3 class="font-sora font-bold text-sm mb-2">Healthcare</h3>
+                <p class="text-[10px] text-slate-500 leading-relaxed">HIPAA-compliant AI. Prior auth letters, clinical
+                    docs—PHI stays local.</p>
+            </div>
+
+            <!-- Financial -->
+            <div class="glass-card p-6 rounded-2xl text-center hover:bg-white/5 transition-colors group">
+                <div class="text-3xl mb-3">💹</div>
+                <h3 class="font-sora font-bold text-sm mb-2">Financial</h3>
+                <p class="text-[10px] text-slate-500 leading-relaxed">Investment memos, M&A docs, trading
+                    strategies—your alpha stays local.</p>
+            </div>
+
+            <!-- Defense -->
+            <div class="glass-card p-6 rounded-2xl text-center hover:bg-white/5 transition-colors group">
+                <div class="text-3xl mb-3">🛡️</div>
+                <h3 class="font-sora font-bold text-sm mb-2">Defense</h3>
+                <p class="text-[10px] text-slate-500 leading-relaxed">ITAR/CUI compliant. SBIR proposals, tech
+                    specs—export-controlled data safe.</p>
+            </div>
+
+            <!-- Pharma -->
+            <div class="glass-card p-6 rounded-2xl text-center hover:bg-white/5 transition-colors group">
+                <div class="text-3xl mb-3">💊</div>
+                <h3 class="font-sora font-bold text-sm mb-2">Pharma</h3>
+                <p class="text-[10px] text-slate-500 leading-relaxed">Pre-patent IP protection. Drug discovery, clinical
+                    trials—trade secrets secured.</p>
+            </div>
+        </div>
+
+        <div class="mt-12 text-center">
+            <p class="text-slate-500 text-sm font-mono">🔒 Zero data exfiltration • Local GPU processing • SOC 2
+                architecture</p>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="py-12 border-t border-white/5 text-center text-slate-500 text-sm">
+        <div class="max-w-7xl mx-auto px-6">
+            <div class="flex items-center justify-center gap-3 mb-8">
+                <img src="logo.png" alt="Springroll" class="w-6 h-6 rounded opacity-50">
+                <span class="font-sora font-semibold text-lg tracking-tight text-slate-400">Springroll</span>
+            </div>
+            <div class="flex flex-wrap justify-center gap-8 mb-8 font-medium">
+                <a href="#security" class="hover:text-white transition-colors">Data Sovereignty</a>
+                <a href="terms.html" class="hover:text-white transition-colors">Terms of Service</a>
+                <a href="privacy.html" class="hover:text-white transition-colors">Privacy Policy</a>
+                <a href="pricing.html" class="hover:text-white transition-colors">Pricing</a>
+                <a href="mailto:enterprise@springroll.ai" class="hover:text-white transition-colors">Enterprise</a>
+            </div>
+            <p>© 2026 Springroll AI. The Sovereign Workstation.</p>
+        </div>
+    </footer>
+
+    <script src="js/auth.js"></script>
+</body>
+
+</html>

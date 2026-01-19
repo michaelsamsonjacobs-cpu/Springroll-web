@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pricing | Springroll Team</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700&family=Inter:wght@300;400;500;600&display=swap"
+        rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        springroll: { dark: '#020617', card: '#0f172a', blue: '#3b82f6', purple: '#a855f7', text: '#f8fafc' }
+                    },
+                    fontFamily: { sora: ['Sora', 'sans-serif'], inter: ['Inter', 'sans-serif'] }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: #020617;
+            color: #f8fafc;
+        }
+
+        .text-gradient {
+            background: linear-gradient(135deg, #60a5fa 0%, #c084fc 50%, #f472b6 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .glass-card {
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .glow-blue {
+            box-shadow: 0 0 50px -10px rgba(59, 130, 246, 0.3);
+        }
+
+        .glow-purple {
+            box-shadow: 0 0 50px -10px rgba(168, 85, 247, 0.3);
+        }
+    </style>
+</head>
+
+<body class="font-inter antialiased">
+
+    <!-- Nav -->
+    <nav class="fixed top-0 w-full z-50 border-b border-white/5 bg-[#020617]/80 backdrop-blur-xl">
+        <div class="max-w-7xl mx-auto px-6 h-16 flex justify-between items-center">
+            <a href="/" class="flex items-center gap-3">
+                <div
+                    class="w-8 h-8 bg-gradient-to-br from-blue-600 to-purple-600 rounded-lg flex items-center justify-center text-white font-bold font-sora shadow-lg">
+                    S</div>
+                <span class="font-sora font-semibold text-lg tracking-tight">springroll team</span>
+            </a>
+            <div class="flex items-center gap-4">
+                <a href="/" class="text-sm text-slate-400 hover:text-white transition-colors">Home</a>
+                <button onclick="SpringrollAuth.signInWithGoogle()"
+                    class="bg-white text-slate-950 px-5 py-2 rounded-full text-xs font-bold uppercase tracking-wide hover:bg-blue-50 transition-colors">
+                    Sign In
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Pricing Section -->
+    <section class="pt-32 pb-20 px-6 max-w-6xl mx-auto">
+        <div class="text-center mb-16">
+            <h1 class="text-4xl md:text-5xl font-sora font-bold mb-6">
+                Simple, <span class="text-gradient">Transparent</span> Pricing
+            </h1>
+            <p class="text-lg text-slate-400 max-w-xl mx-auto">
+                Start free, upgrade when you need more power. Your data stays local, always.
+            </p>
+        </div>
+
+        <div class="grid md:grid-cols-3 gap-8">
+            <!-- Free Tier -->
+            <div class="glass-card p-8 rounded-3xl relative">
+                <h3 class="text-xl font-sora font-bold mb-2">Starter</h3>
+                <div class="flex items-baseline gap-1 mb-6">
+                    <span class="text-4xl font-bold">$0</span>
+                    <span class="text-slate-400">/month</span>
+                </div>
+                <ul class="space-y-4 mb-8 text-sm text-slate-300">
+                    <li class="flex items-center gap-3">
+                        <span class="text-green-500">✓</span> Basic AI Agent
+                    </li>
+                    <li class="flex items-center gap-3">
+                        <span class="text-green-500">✓</span> Local file indexing
+                    </li>
+                    <li class="flex items-center gap-3">
+                        <span class="text-green-500">✓</span> 3 document templates
+                    </li>
+                    <li class="flex items-center gap-3 text-slate-500">
+                        <span>✗</span> Grant/Contract Finder
+                    </li>
+                    <li class="flex items-center gap-3 text-slate-500">
+                        <span>✗</span> Priority support
+                    </li>
+                </ul>
+                <a href="/"
+                    class="block w-full text-center border border-white/10 text-white px-6 py-3 rounded-xl font-semibold hover:bg-white/5 transition-colors">
+                    Download Free
+                </a>
+            </div>
+
+            <!-- Pro Tier (Recommended) -->
+            <div class="glass-card p-8 rounded-3xl relative border-blue-500/30 glow-blue scale-105">
+                <div
+                    class="absolute -top-3 left-1/2 -translate-x-1/2 bg-blue-600 text-white text-xs font-bold px-4 py-1 rounded-full uppercase">
+                    Most Popular
+                </div>
+                <h3 class="text-xl font-sora font-bold mb-2">Pro</h3>
+                <div class="flex items-baseline gap-1 mb-6">
+                    <span class="text-4xl font-bold">$29</span>
+                    <span class="text-slate-400">/month</span>
+                </div>
+                <p class="text-xs text-green-400 mb-6">7-day free trial</p>
+                <ul class="space-y-4 mb-8 text-sm text-slate-300">
+                    <li class="flex items-center gap-3">
+                        <span class="text-green-500">✓</span> All AI Agents
+                    </li>
+                    <li class="flex items-center gap-3">
+                        <span class="text-green-500">✓</span> Grant & Contract Finder
+                    </li>
+                    <li class="flex items-center gap-3">
+                        <span class="text-green-500">✓</span> Unlimited documents
+                    </li>
+                    <li class="flex items-center gap-3">
+                        <span class="text-green-500">✓</span> Patent & Legal agent
+                    </li>
+                    <li class="flex items-center gap-3">
+                        <span class="text-green-500">✓</span> Priority support
+                    </li>
+                </ul>
+                <button onclick="SpringrollAuth.startProCheckout()"
+                    class="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 py-3 rounded-xl font-bold hover:opacity-90 transition-opacity">
+                    Start Free Trial
+                </button>
+            </div>
+
+            <!-- Team Tier -->
+            <div class="glass-card p-8 rounded-3xl relative border-purple-500/30">
+                <h3 class="text-xl font-sora font-bold mb-2">Team</h3>
+                <div class="flex items-baseline gap-1 mb-6">
+                    <span class="text-4xl font-bold">$49</span>
+                    <span class="text-slate-400">/user/mo</span>
+                </div>
+                <ul class="space-y-4 mb-8 text-sm text-slate-300">
+                    <li class="flex items-center gap-3">
+                        <span class="text-green-500">✓</span> Everything in Pro
+                    </li>
+                    <li class="flex items-center gap-3">
+                        <span class="text-green-500">✓</span> SSO / Google Auth
+                    </li>
+                    <li class="flex items-center gap-3">
+                        <span class="text-green-500">✓</span> Team workspaces
+                    </li>
+                    <li class="flex items-center gap-3">
+                        <span class="text-green-500">✓</span> Admin dashboard
+                    </li>
+                    <li class="flex items-center gap-3">
+                        <span class="text-green-500">✓</span> Usage analytics
+                    </li>
+                </ul>
+                <button onclick="SpringrollAuth.startTeamCheckout()"
+                    class="w-full border border-purple-500/50 text-white px-6 py-3 rounded-xl font-bold hover:bg-purple-500/10 transition-colors">
+                    Subscribe
+                </button>
+            </div>
+        </div>
+
+        <!-- Enterprise CTA -->
+        <div class="mt-16 glass-card p-8 rounded-3xl text-center glow-purple">
+            <h3 class="text-2xl font-sora font-bold mb-4">Enterprise</h3>
+            <p class="text-slate-400 mb-6 max-w-xl mx-auto">
+                Need self-hosting, custom SLAs, or dedicated support? Let's talk.
+            </p>
+            <a href="mailto:enterprise@springroll.ai"
+                class="inline-block bg-purple-600 text-white px-8 py-3 rounded-xl font-bold hover:bg-purple-500 transition-colors">
+                Contact Sales
+            </a>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="py-12 border-t border-white/5 text-center text-slate-500 text-sm">
+        <p>© 2026 Springroll AI. The Sovereign Workstation.</p>
+    </footer>
+
+    <script src="js/auth.js"></script>
+</body>
+
+</html>
