@@ -106,13 +106,18 @@ export const EmbeddingService = {
      * Index a file content: Chunk it and store vectors
      */
     async indexFile(filePath, content) {
-        // Simple chunking (500 chars roughly)
-        // In prod, use standard text splitters (langchain-style)
-        // Here we split by newlines and group
+        return this.indexContent(content, { filePath });
+    },
 
-        if (!content) return;
+    /**
+     * Index arbitrary content with metadata
+     */
+    async indexContent(text, metadata = {}) {
+        if (!text || !text.trim()) return 0;
 
-        const chunks = this.chunkText(content, 500);
+        const chunks = this.chunkText(text, 500);
+        if (!this.db) await this.initDB();
+
         const transaction = this.db.transaction([STORE_NAME], 'readwrite');
         const store = transaction.objectStore(STORE_NAME);
 
@@ -121,12 +126,17 @@ export const EmbeddingService = {
             const embedding = await this.generateEmbedding(chunk);
             if (!embedding) continue;
 
+            const id = metadata.filePath
+                ? `${metadata.filePath}#chunk${count}`
+                : `content_${Date.now()}_${count}`;
+
             const record = {
-                id: `${filePath}#chunk${count}`,
-                filePath: filePath,
+                id,
                 content: chunk,
-                embedding: embedding,
-                timestamp: Date.now()
+                embedding,
+                metadata,
+                timestamp: Date.now(),
+                ...metadata // Spread metadata for direct query access
             };
 
             store.put(record);

@@ -140,12 +140,25 @@ export const AIService = {
 
         // Semantic Search (RAG)
         try {
-            // Search limit 3 chunks
+            // 1. Priority: Golden Samples (User approved references)
+            const goldenSamples = await EmbeddingService.search(prompt, 2);
+            // Filter locally for golden_sample trait since search doesn't yet support filtering
+            const prioritized = goldenSamples.filter(s => s.metadata?.kind === 'golden_sample' || s.kind === 'golden_sample');
+
+            if (prioritized.length > 0) {
+                const goldenContext = prioritized.map(c => `[USER APPROVED STYLE]:\n${c.content}`).join('\n---\n');
+                augmentedSystemInstruction += `\n\nGOLDEN SAMPLES (YOUR APPROVED STYLE):\n${goldenContext}\n\nStrictly follow the style and tone of these examples.`;
+                console.log(`[RAG] Injected ${prioritized.length} golden samples.`);
+            }
+
+            // 2. Base: Codebase/Vault context
             const chunks = await EmbeddingService.search(prompt, 3);
-            if (chunks && chunks.length > 0) {
-                const context = chunks.map(c => `File: ${c.filePath}\n${c.content}`).join('\n---\n');
+            const regularChunks = chunks.filter(s => s.metadata?.kind !== 'golden_sample' && s.kind !== 'golden_sample');
+
+            if (regularChunks.length > 0) {
+                const context = regularChunks.map(c => `File: ${c.filePath || 'Reference'}\n${c.content}`).join('\n---\n');
                 augmentedSystemInstruction += `\n\nRELEVANT CODEBASE CONTEXT:\n${context}\n\nUse this context to answer the user request.`;
-                console.log(`[RAG] Injected ${chunks.length} chunks of context.`);
+                console.log(`[RAG] Injected ${regularChunks.length} chunks of codebase context.`);
             }
         } catch (e) {
             // Ignore search errors (e.g. index empty)

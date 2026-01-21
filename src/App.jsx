@@ -21,6 +21,7 @@ import WebLLMService from './services/WebLLMService';
 import { GrantAgentDashboard } from './components/GrantAgentDashboard';
 import FeedbackService from './services/FeedbackService';
 import { ShareWorkspaceModal } from './components/ShareWorkspaceModal';
+import { RalphAgentPanel } from './components/RalphAgentPanel';
 
 // Runtime Tauri invoke detection - avoid static import that breaks web builds
 const invoke = typeof window !== 'undefined' && window.__TAURI__?.core?.invoke
@@ -42,6 +43,7 @@ const NAV_ITEMS = [
     { id: 'chatbot', label: 'Bot Builder', icon: Bot, color: '#f43f5e' },
     { id: 'automation', label: 'Automation', icon: Globe, color: '#eab308' },
     { id: 'docs', label: 'Doc Builder', icon: FileText, color: '#ec4899' },
+    { id: 'ralph', label: 'Ralph Agent', icon: Bot, color: '#f59e0b', isFloating: true },
     { id: 'grants', label: 'Opportunity Finder', icon: Target, color: '#10b981' },
     { id: 'gtm', label: 'GTM Agent', icon: Target, color: '#06b6d4' },
     { id: 'help', label: 'Help Center', icon: HelpCircle, color: '#f59e0b' },
@@ -67,6 +69,16 @@ function App() {
     const [indexingStatus, setIndexingStatus] = useState(null);
     const [activeFile, setActiveFile] = useState(null);
     const [rightPanelTab, setRightPanelTab] = useState('automation'); // 'automation' | 'editor'
+    const [showRalph, setShowRalph] = useState(false);
+
+    useEffect(() => {
+        const handleOpenRalph = (e) => {
+            setShowRalph(true);
+            // We could set pre-filled task here if RalphAgentPanel supported it
+        };
+        window.addEventListener('open-ralph', handleOpenRalph);
+        return () => window.removeEventListener('open-ralph', handleOpenRalph);
+    }, []);
 
     const handleOpenFile = async (path) => {
         try {
@@ -313,7 +325,7 @@ function App() {
                         return (
                             <button
                                 key={item.id}
-                                onClick={() => setActiveView(item.id)}
+                                onClick={() => item.isFloating ? setShowRalph(true) : setActiveView(item.id)}
                                 style={styles.navButton(isActive, item.color)}
                             >
                                 <Icon size={20} />
@@ -526,6 +538,11 @@ function App() {
                 isOpen={showShareModal}
                 onClose={() => setShowShareModal(false)}
             />
+
+            {/* Ralph autonomous Agent Panel */}
+            <AnimatePresence>
+                {showRalph && <RalphAgentPanel onClose={() => setShowRalph(false)} />}
+            </AnimatePresence>
         </div>
     );
 }

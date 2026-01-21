@@ -6,7 +6,7 @@ import {
     FileText, Presentation, Mail, Award, File, Plus, ChevronRight,
     Sparkles, Loader2, Check, Download, Copy, Eye, Edit3, Trash2,
     ArrowLeft, Wand2, Clock, Folder, Layers, BookOpen, Search, Filter,
-    Grid, List, Star, TrendingUp, Users, Briefcase, RefreshCw, CheckCircle2, ThumbsUp, ThumbsDown
+    Grid, List, Star, TrendingUp, Users, Briefcase, RefreshCw, CheckCircle2, ThumbsUp, ThumbsDown, Bot
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -582,6 +582,36 @@ const DocumentEditor = ({ template, document, context, setContext, onGenerate, g
                         }}
                     >
                         {generating ? <><Loader2 size={18} className="animate-spin" /> Generating...</> : <><Wand2 size={18} /> Generate {template.name}</>}
+                    </button>
+
+                    <div style={{ marginTop: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <div style={{ flex: 1, height: '1px', background: 'rgba(255,255,255,0.05)' }}></div>
+                        <span style={{ fontSize: '10px', fontWeight: 'bold', color: '#64748b', textTransform: 'uppercase' }}>Or launch autonomous worker</span>
+                        <div style={{ flex: 1, height: '1px', background: 'rgba(255,255,255,0.05)' }}></div>
+                    </div>
+
+                    <button
+                        onClick={() => {
+                            // Since showRalph state is in App.jsx, we hope the global nav item is clicked.
+                            // But we can trigger a custom event or just suggest it.
+                            // For this MVP, we will assume the user opens the Ralph panel from the sidebar.
+                            // We can use window.dispatchEvent if we want to be fancy.
+                            window.dispatchEvent(new CustomEvent('open-ralph', {
+                                detail: { task: `Generate a complete ${template.name} for ${context.companyName} in the ${context.industry} industry.` }
+                            }));
+                        }}
+                        style={{
+                            width: '100%', marginTop: '16px', padding: '12px', borderRadius: '12px', border: '1px solid rgba(245,158,11,0.2)',
+                            background: 'rgba(245,158,11,0.05)',
+                            color: '#f59e0b', fontSize: '13px', fontWeight: 600, cursor: 'pointer',
+                            display: 'flex', alignItems: 'center', justifyCenter: 'center', gap: '8px',
+                            transition: 'all 0.2s'
+                        }}
+                        onMouseEnter={e => e.currentTarget.style.background = 'rgba(245,158,11,0.1)'}
+                        onMouseLeave={e => e.currentTarget.style.background = 'rgba(245,158,11,0.05)'}
+                    >
+                        <Bot size={16} />
+                        Launch Ralph Loop (24/7 Autopilot)
                     </button>
                 </div>
             )}

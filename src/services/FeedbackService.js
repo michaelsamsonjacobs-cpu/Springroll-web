@@ -187,6 +187,29 @@ export const FeedbackService = {
     },
 
     /**
+     * Capture direct approval of content (e.g., from Ralph or manual finalization)
+     */
+    async captureDirectApproval(docId, templateId, sectionId, content, context = {}) {
+        await this.initialize();
+
+        const record = {
+            id: this.generateId(),
+            docId,
+            templateId,
+            sectionId,
+            feedbackType: 'accept', // We'll use 'accept' as the positive signal
+            original: content,
+            edited: null,
+            diff: null,
+            context,
+            timestamp: Date.now(),
+            directApproval: true
+        };
+
+        return this.saveRecord(record);
+    },
+
+    /**
      * Save feedback record to IndexedDB
      */
     async saveRecord(record) {
