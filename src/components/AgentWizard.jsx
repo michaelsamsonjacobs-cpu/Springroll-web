@@ -43,17 +43,38 @@ export const AgentWizard = ({ agent, onComplete, onBack }) => {
     };
 
     const handleFolderSelect = async () => {
-        // In production: Use Tauri dialog to select folder
-        // For now: Prompt user and store path
-        const path = prompt('Enter folder path (e.g., C:\\Projects\\MyProject):');
-        if (path) {
-            handleAnswer(currentQuestion.id, path);
-            // Simulate indexing files
-            setFileContext([
-                { name: 'project_overview.md', size: '4.2 KB' },
-                { name: 'technical_specs.pdf', size: '1.1 MB' },
-                { name: 'team_bios.docx', size: '234 KB' },
-            ]);
+        try {
+            // Dynamic import to avoid issues in web-only build if package missing
+            const { open } = await import('@tauri-apps/plugin-dialog');
+
+            const selected = await open({
+                directory: true,
+                multiple: false,
+                title: 'Select Context Folder'
+            });
+
+            if (selected) {
+                // 'selected' is string path when multiple: false
+                handleAnswer(currentQuestion.id, selected);
+
+                // Simulate indexing - in real app would invoke('index_folder', { path: selected })
+                setFileContext([
+                    { name: 'project_overview.md', size: '4.2 KB' },
+                    { name: 'technical_specs.pdf', size: '1.1 MB' },
+                    { name: 'team_bios.docx', size: '234 KB' },
+                ]);
+            }
+        } catch (err) {
+            console.warn('Tauri dialog failed, falling back to prompt:', err);
+            // Fallback for web or error
+            const path = prompt('Enter folder path (e.g., C:\\Projects\\MyProject):');
+            if (path) {
+                handleAnswer(currentQuestion.id, path);
+                setFileContext([
+                    { name: 'project_overview.md', size: '4.2 KB' },
+                    { name: 'technical_specs.pdf', size: '1.1 MB' },
+                ]);
+            }
         }
     };
 

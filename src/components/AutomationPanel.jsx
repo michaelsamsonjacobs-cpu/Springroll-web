@@ -75,7 +75,7 @@ export const AutomationPanel = () => {
     };
 
     return (
-        <div style={{ display: 'flex', flexDirection: 'column', height: '100%', padding: '12px', color: 'white' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', height: '100%', padding: '12px 12px 32px 12px', color: 'white' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
                 <h3 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px' }}>
                     <Globe size={16} color="#3b82f6" />

@@ -90,7 +90,8 @@ export const HelpCenter = () => {
             flexDirection: 'column',
             gap: '24px',
             color: 'white',
-            fontFamily: "'Inter', sans-serif"
+            fontFamily: "'Inter', sans-serif",
+            overflowY: 'auto'
         },
         searchSection: {
             padding: '32px',

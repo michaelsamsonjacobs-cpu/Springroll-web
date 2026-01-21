@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Play, Plus, Trash2, Save, MousePointer, Type, Globe, Clock, Camera, AlertCircle, FileJson, Folder, AppWindow, Brain, Sparkles } from 'lucide-react';
 import { WorkflowTrainer } from '../services/WorkflowTrainer';
+import { Modal } from './Modal';
 
-const invoke = window.__TAURI__ ? window.__TAURI__.core.invoke : async () => { console.warn("Tauri not found"); return "{}"; };
+import { invoke } from '@tauri-apps/api/core';
 
 export const ActionRecorder = () => {
     // Workflow State
@@ -27,17 +28,26 @@ export const ActionRecorder = () => {
     const [status, setStatus] = useState('idle');
     const [logs, setLogs] = useState([]);
 
+    // UI State
+    const [showCreateModal, setShowCreateModal] = useState(false);
+    const [newWorkflowName, setNewWorkflowName] = useState('');
+
     // Persistence
     useEffect(() => {
         localStorage.setItem('springroll_workflows', JSON.stringify(workflows));
     }, [workflows]);
 
     const createWorkflow = () => {
-        const name = prompt("Workflow Name:");
-        if (!name) return;
-        const newWf = { id: crypto.randomUUID(), name, steps: [] };
+        setNewWorkflowName('');
+        setShowCreateModal(true);
+    };
+
+    const handleConfirmCreate = () => {
+        if (!newWorkflowName.trim()) return;
+        const newWf = { id: crypto.randomUUID(), name: newWorkflowName, steps: [] };
         setWorkflows([...workflows, newWf]);
         setActiveWorkflowId(newWf.id);
+        setShowCreateModal(false);
     };
 
     const deleteWorkflow = (id) => {
@@ -269,6 +279,42 @@ export const ActionRecorder = () => {
                     ))}
                 </div>
             </div>
+            {/* Create Workflow Modal */}
+            <Modal
+                isOpen={showCreateModal}
+                onClose={() => setShowCreateModal(false)}
+                title="Create New Workflow"
+                footer={
+                    <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
+                        <button
+                            onClick={() => setShowCreateModal(false)}
+                            style={{ ...btnStyle, background: 'transparent', border: '1px solid rgba(255,255,255,0.1)' }}
+                        >
+                            Cancel
+                        </button>
+                        <button
+                            onClick={handleConfirmCreate}
+                            disabled={!newWorkflowName.trim()}
+                            style={{ ...btnStyle, background: newWorkflowName.trim() ? '#3b82f6' : 'rgba(255,255,255,0.1)', color: 'white', opacity: newWorkflowName.trim() ? 1 : 0.5 }}
+                        >
+                            Create Workflow
+                        </button>
+                    </div>
+                }
+            >
+                <div>
+                    <label style={{ display: 'block', fontSize: '13px', color: '#94a3b8', marginBottom: '8px' }}>Workflow Name</label>
+                    <input
+                        type="text"
+                        value={newWorkflowName}
+                        onChange={(e) => setNewWorkflowName(e.target.value)}
+                        onKeyDown={(e) => e.key === 'Enter' && handleConfirmCreate()}
+                        style={{ ...inputStyle, width: '100%' }}
+                        placeholder="e.g. Daily Scraper"
+                        autoFocus
+                    />
+                </div>
+            </Modal>
         </div>
     );
 };

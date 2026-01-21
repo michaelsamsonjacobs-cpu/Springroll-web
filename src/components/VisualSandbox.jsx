@@ -1,7 +1,8 @@
 import React, { useState, lazy, Suspense, useEffect } from 'react';
-import { Eye, Code, Edit3, Layers, Copy, Download, Check, FileCode, Loader2 } from 'lucide-react';
+import { Eye, Code, Edit3, Layers, Copy, Download, Check, FileCode, Loader2, Sparkles, Send } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { invoke } from '@tauri-apps/api/core';
+import { AIService } from '../services/GeminiService';
 
 // Lazy load Monaco Editor for better initial load performance
 const CodeEditor = lazy(() => import('./CodeEditor').then(m => ({ default: m.CodeEditor })));
@@ -10,6 +11,8 @@ export const VisualSandbox = ({ content, type = 'svg', onCodeChange, activeFile 
     const [view, setView] = useState('preview');
     const [copied, setCopied] = useState(false);
     const [editableCode, setEditableCode] = useState('');
+    const [prompt, setPrompt] = useState('');
+    const [isGenerating, setIsGenerating] = useState(false);
 
     useEffect(() => {
         if (activeFile) {
@@ -35,6 +38,39 @@ export const VisualSandbox = ({ content, type = 'svg', onCodeChange, activeFile 
             a.download = 'springroll-output.html';
             a.click();
             URL.revokeObjectURL(url);
+        }
+    };
+
+    const handleGenerate = async () => {
+        if (!prompt.trim() || isGenerating) return;
+        setIsGenerating(true);
+        try {
+            // Determine context based on current view/content
+            const currentContext = editableCode || content || '';
+            const systemPrompt = `You are a specialized UI generator. 
+            Generate code based on the user request. 
+            If the request implies updating existing code, return the FULL updated code.
+            Output ONLY the raw code (HTML/CSS/JS or SVG). Do not include markdown backticks.`;
+
+            const newCode = await AIService.generate(
+                prompt,
+                systemPrompt + "\n\nCURRENT CODE:\n" + currentContext
+            );
+
+            // Auto-detect view type
+            if (newCode.trim().startsWith('<svg')) {
+                // It's likely an SVG
+            }
+
+            setEditableCode(newCode);
+            if (onCodeChange) onCodeChange(newCode);
+            setPrompt('');
+            setView('preview'); // Switch to preview to see result
+        } catch (e) {
+            console.error(e);
+            alert('Generation failed: ' + e.message);
+        } finally {
+            setIsGenerating(false);
         }
     };
 
@@ -176,6 +212,48 @@ export const VisualSandbox = ({ content, type = 'svg', onCodeChange, activeFile 
                         />
                     </Suspense>
                 )}
+            </div>
+
+            {/* Prompt Input Area */}
+            <div style={{
+                padding: '12px',
+                borderTop: '1px solid rgba(255,255,255,0.05)',
+                background: 'rgba(30,41,59,0.3)'
+            }}>
+                <div style={{
+                    display: 'flex', alignItems: 'center', gap: '8px',
+                    background: 'rgba(0,0,0,0.2)',
+                    border: '1px solid rgba(255,255,255,0.1)',
+                    borderRadius: '12px',
+                    padding: '8px 12px'
+                }}>
+                    <Sparkles size={16} className={isGenerating ? "text-amber-500 animate-pulse" : "text-amber-500"} />
+                    <input
+                        type="text"
+                        placeholder={isGenerating ? "Generating..." : "Ask Springroll to edit or create..."}
+                        value={prompt}
+                        onChange={e => setPrompt(e.target.value)}
+                        onKeyDown={e => e.key === 'Enter' && handleGenerate()}
+                        disabled={isGenerating}
+                        style={{
+                            flex: 1, background: 'transparent', border: 'none', outline: 'none',
+                            color: 'white', fontSize: '13px'
+                        }}
+                    />
+                    <button
+                        onClick={handleGenerate}
+                        disabled={!prompt.trim() || isGenerating}
+                        style={{
+                            background: prompt.trim() ? '#a855f7' : 'transparent',
+                            color: prompt.trim() ? 'white' : '#64748b',
+                            border: 'none', borderRadius: '6px',
+                            padding: '6px', cursor: prompt.trim() ? 'pointer' : 'default',
+                            transition: 'all 0.2s'
+                        }}
+                    >
+                        {isGenerating ? <Loader2 size={14} className="animate-spin" /> : <Send size={14} />}
+                    </button>
+                </div>
             </div>
         </div>
     );

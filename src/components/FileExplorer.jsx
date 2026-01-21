@@ -3,6 +3,7 @@ import { SearchService } from '../services/SearchService';
 import { AnnotationService } from '../services/AnnotationService';
 import { Folder, File, Search, RefreshCcw, Database, ChevronRight, ChevronDown, FolderOpen, Plus, Trash2, MessageSquare } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { Modal } from './Modal';
 import { open } from '@tauri-apps/plugin-dialog';
 import { listen } from '@tauri-apps/api/event';
 import { invoke } from '@tauri-apps/api/core';
@@ -15,6 +16,10 @@ export const FileExplorer = ({ onFileSelect }) => {
     const [annotationCounts, setAnnotationCounts] = useState({});
     const [contextMenu, setContextMenu] = useState(null); // { x, y, filePath }
     const [recentChanges, setRecentChanges] = useState([]); // Track recent file changes
+
+    // Modal State
+    const [modalConfig, setModalConfig] = useState({ isOpen: false, type: '', data: null });
+    const [inputValue, setInputValue] = useState('');
 
     useEffect(() => {
         loadWorkspaces();
@@ -51,7 +56,7 @@ export const FileExplorer = ({ onFileSelect }) => {
     }, []);
 
     const loadWorkspaces = () => {
-        const data = SearchService.getWorkspaces();
+        const data = SearchService.getWorkspaces() || []; // Ensure array
         setWorkspaces(data);
         // Default expand all if few, or just the first
         if (data.length > 0 && Object.keys(expanded).length === 0) {
@@ -60,30 +65,44 @@ export const FileExplorer = ({ onFileSelect }) => {
     };
 
     const handleIndex = async () => {
-        // Native folder picker via Tauri
-        let path;
+        // Native folder picker via Tauri first
         try {
-            path = await open({
+            const path = await open({
                 directory: true,
                 multiple: false,
                 title: 'Select Workspace Folder'
             });
-        } catch (e) {
-            // Fallback to prompt if dialog fails (browser mode)
-            path = window.prompt("Index a local workspace (absolute path):", "C:/Users/Mike/Desktop/Springroll");
-        }
-        if (!path) return;
 
+            if (path) {
+                performIndexing(path);
+                return;
+            }
+        } catch (e) {
+            // Fallback to custom modal if dialog fails or is cancelled/unavailable
+            console.log('Native dialog skipped/failed, showing modal fallback');
+        }
+
+        // Show Custom Modal
+        setInputValue('C:/Users/Mike/Desktop/Springroll'); // Default suggestion
+        setModalConfig({
+            isOpen: true,
+            type: 'index_workspace',
+            title: 'Connect Local Workspace',
+            message: 'Enter the absolute path to the folder you want to index:'
+        });
+    };
+
+    const performIndexing = async (path) => {
+        if (!path) return;
         setLoading(true);
         try {
             await SearchService.indexDirectory(path);
             loadWorkspaces();
-            setExpanded(prev => ({ ...prev, [path]: true })); // Auto-expand new
+            setExpanded(prev => ({ ...prev, [path]: true }));
 
-            // Start watching the new folder for real-time updates
+            // Start watching
             try {
                 await invoke('watch_directory', { path });
-                console.log('[FileExplorer] Now watching:', path);
             } catch (watchErr) {
                 console.warn('[FileExplorer] Could not start watching:', watchErr);
             }
@@ -95,12 +114,34 @@ export const FileExplorer = ({ onFileSelect }) => {
         }
     };
 
+    const confirmIndex = () => {
+        console.log('[FileExplorer] Confirming index with path:', inputValue);
+        if (inputValue && inputValue.trim()) {
+            performIndexing(inputValue.trim());
+        } else {
+            alert("Please enter a valid path.");
+            return;
+        }
+        closeModal();
+    };
+
     const handleRemove = (path, e) => {
         e.stopPropagation();
-        if (window.confirm('Remove this folder from workspace?')) {
-            SearchService.removeWorkspace(path);
+        setModalConfig({
+            isOpen: true,
+            type: 'confirm_remove',
+            data: { path },
+            title: 'Remove Workspace?',
+            message: 'Are you sure you want to remove this folder from your workspace?'
+        });
+    };
+
+    const confirmRemove = () => {
+        if (modalConfig.data?.path) {
+            SearchService.removeWorkspace(modalConfig.data.path);
             loadWorkspaces();
         }
+        closeModal();
     };
 
     const toggleExpand = (root) => {
@@ -128,12 +169,29 @@ export const FileExplorer = ({ onFileSelect }) => {
     };
 
     const handleAddAnnotation = () => {
-        const text = window.prompt('Add annotation for this file:');
-        if (text && contextMenu?.filePath) {
-            AnnotationService.add(contextMenu.filePath, text);
-            setAnnotationCounts(AnnotationService.countByFile());
+        if (contextMenu?.filePath) {
+            setInputValue('');
+            setModalConfig({
+                isOpen: true,
+                type: 'add_annotation',
+                data: { filePath: contextMenu.filePath },
+                title: 'Add Annotation',
+            });
         }
         setContextMenu(null);
+    };
+
+    const confirmAddAnnotation = () => {
+        if (inputValue.trim() && modalConfig.data?.filePath) {
+            AnnotationService.add(modalConfig.data.filePath, inputValue);
+            setAnnotationCounts(AnnotationService.countByFile());
+        }
+        closeModal();
+    };
+
+    const closeModal = () => {
+        setModalConfig({ isOpen: false, type: '', data: null });
+        setInputValue('');
     };
 
     const handleViewAnnotations = () => {
@@ -183,7 +241,7 @@ export const FileExplorer = ({ onFileSelect }) => {
                     {workspaces.length > 0 ? (
                         workspaces.map((ws, wsIdx) => {
                             const isExpanded = expanded[ws.root];
-                            const filteredFiles = ws.files.filter(f =>
+                            const filteredFiles = (ws.files || []).filter(f =>
                                 f.toLowerCase().includes(searchTerm.toLowerCase())
                             );
 
@@ -275,7 +333,7 @@ export const FileExplorer = ({ onFileSelect }) => {
                         {loading ? 'Indexing...' : 'Ready'}
                     </span>
                     <span className="font-mono">
-                        {workspaces.reduce((acc, ws) => acc + ws.files.length, 0)} files total
+                        {(workspaces || []).reduce((acc, ws) => acc + (ws.files?.length || 0), 0)} files total
                     </span>
                 </div>
             </div>
@@ -311,6 +369,51 @@ export const FileExplorer = ({ onFileSelect }) => {
                 </div>
             )}
             {contextMenu && <div className="fixed inset-0 z-50" onClick={() => setContextMenu(null)} />}
+            {/* Generic Modal */}
+            <Modal
+                isOpen={modalConfig.isOpen}
+                onClose={closeModal}
+                title={modalConfig.title}
+                footer={
+                    <div className="flex gap-2">
+                        <button onClick={closeModal} className="px-4 py-2 hover:bg-white/5 rounded-lg text-sm text-slate-400">Cancel</button>
+                        <button
+                            onClick={
+                                modalConfig.type === 'confirm_remove' ? confirmRemove :
+                                    modalConfig.type === 'index_workspace' ? confirmIndex :
+                                        confirmAddAnnotation
+                            }
+                            className={`px-4 py-2 rounded-lg text-sm font-semibold text-white ${modalConfig.type === 'confirm_remove' ? 'bg-red-500 hover:bg-red-600' : 'bg-blue-600 hover:bg-blue-500'
+                                }`}
+                        >
+                            {modalConfig.type === 'confirm_remove' ? 'Remove' :
+                                modalConfig.type === 'index_workspace' ? 'Connect' : 'Save'}
+                        </button>
+                    </div>
+                }
+            >
+                {modalConfig.type === 'confirm_remove' ? (
+                    <p className="text-slate-300 text-sm">{modalConfig.message}</p>
+                ) : (
+                    <div className="space-y-3">
+                        {modalConfig.message && <p className="text-xs text-slate-400 mb-2">{modalConfig.message}</p>}
+                        <input
+                            type="text"
+                            value={inputValue}
+                            onChange={e => setInputValue(e.target.value)}
+                            onKeyDown={e => {
+                                if (e.key === 'Enter') {
+                                    if (modalConfig.type === 'index_workspace') confirmIndex();
+                                    else confirmAddAnnotation();
+                                }
+                            }}
+                            className={`w-full bg-black/30 border border-white/10 rounded-lg p-3 text-white text-sm focus:outline-none focus:border-blue-500 ${modalConfig.type === 'index_workspace' ? 'font-mono' : ''}`}
+                            placeholder={modalConfig.type === 'index_workspace' ? "e.g. C:/Projects/MyApp" : "Type your annotation..."}
+                            autoFocus
+                        />
+                    </div>
+                )}
+            </Modal>
         </div>
     );
 };

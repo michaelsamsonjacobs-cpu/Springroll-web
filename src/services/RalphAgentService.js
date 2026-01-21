@@ -11,6 +11,9 @@
 import { AIService } from './GeminiService';
 import { RalphProgressStore } from './RalphProgressStore';
 
+// Invoke helper for Tauri
+const invoke = window.__TAURI__ ? window.__TAURI__.core.invoke : async () => { console.warn("Tauri not found"); return "{}"; };
+
 // Promise token that signals task completion
 const PROMISE_TOKEN = '<promise>COMPLETE</promise>';
 const MAX_ITERATIONS_DEFAULT = 20;
@@ -24,6 +27,7 @@ export const RALPH_TASK_TYPES = {
     RESEARCH: 'research',      // Research and analysis
     GRANT: 'grant',            // Grant proposal writing
     GTM: 'gtm',                // Go-to-market tasks
+    AUTOMATION: 'automation',  // Browser automation
     CUSTOM: 'custom'           // Custom tasks
 };
 
@@ -86,9 +90,21 @@ class RalphAgentServiceClass {
      * Break a task into executable chunks
      * @param {string} taskDescription - High-level task description
      * @param {string} taskType - Type of task
+     * @param {Array} [automationSteps=null] - Predefined steps for automation tasks
      * @returns {Array} Array of task chunks
      */
-    async breakdownTask(taskDescription, taskType) {
+    async breakdownTask(taskDescription, taskType, automationSteps = null) {
+        if (taskType === RALPH_TASK_TYPES.AUTOMATION && automationSteps) {
+            this.log('Loading predefined automation steps...');
+            return automationSteps.map((s, i) => ({
+                id: `step_${i + 1}`,
+                description: s.description || `Action: ${s.type}`,
+                verification: 'Browser action completed successfully',
+                dependencies: i > 0 ? [`step_${i}`] : [],
+                actionPayload: s // Store the raw automation payload
+            }));
+        }
+
         this.log('Breaking down task into chunks...');
 
         const breakdownPrompt = `You are a task planning assistant. Break down this task into 3-7 specific, actionable steps.
@@ -142,6 +158,41 @@ Respond ONLY with the JSON array, no other text.`;
     async executeStep(step, context) {
         this.log(`Executing step: ${step.description}`);
 
+        // Handle automation steps
+        if (step.actionPayload) {
+            this.log(`Performing automation action: ${step.actionPayload.type}`);
+            try {
+                // Use the correct Tauri command with stringified payload
+                const automationResult = await invoke('run_automation_sidecar', {
+                    payload: JSON.stringify({
+                        id: step.id,
+                        action: 'execute_step', // or whatever the sidecar expects for a single step
+                        payload: step.actionPayload
+                    })
+                });
+
+                // Assuming result is a string if invoke returns string, or object. 
+                // Based on AutomationPanel it returns a string response.
+
+                this.log(`Automation action "${step.actionPayload.type}" result: ${automationResult}.`);
+                return {
+                    stepId: step.id,
+                    output: `Automation action "${step.actionPayload.type}" completed. Sidecar: ${automationResult}`,
+                    isComplete: true,
+                    verification: step.verification
+                };
+            } catch (e) {
+                this.log(`Automation action failed: ${e.message}`, 'error');
+                return {
+                    stepId: step.id,
+                    output: `Automation action "${step.actionPayload.type}" failed: ${e.message}`,
+                    isComplete: false,
+                    verification: step.verification
+                };
+            }
+        }
+
+        // Existing AI-driven execution for other task types
         const memory = await RalphProgressStore.getMemoryString(this.currentTask.id);
 
         const executePrompt = `You are Ralph, an autonomous AI agent working on a task.

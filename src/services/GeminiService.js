@@ -143,7 +143,7 @@ export const AIService = {
             // 1. Priority: Golden Samples (User approved references)
             const goldenSamples = await EmbeddingService.search(prompt, 2);
             // Filter locally for golden_sample trait since search doesn't yet support filtering
-            const prioritized = goldenSamples.filter(s => s.metadata?.kind === 'golden_sample' || s.kind === 'golden_sample');
+            const prioritized = (goldenSamples || []).filter(s => s.metadata?.kind === 'golden_sample' || s.kind === 'golden_sample');
 
             if (prioritized.length > 0) {
                 const goldenContext = prioritized.map(c => `[USER APPROVED STYLE]:\n${c.content}`).join('\n---\n');
@@ -153,7 +153,7 @@ export const AIService = {
 
             // 2. Base: Codebase/Vault context
             const chunks = await EmbeddingService.search(prompt, 3);
-            const regularChunks = chunks.filter(s => s.metadata?.kind !== 'golden_sample' && s.kind !== 'golden_sample');
+            const regularChunks = (chunks || []).filter(s => s.metadata?.kind !== 'golden_sample' && s.kind !== 'golden_sample');
 
             if (regularChunks.length > 0) {
                 const context = regularChunks.map(c => `File: ${c.filePath || 'Reference'}\n${c.content}`).join('\n---\n');
@@ -197,7 +197,7 @@ export const AIService = {
                     return await this.generateGemini(prompt, augmentedSystemInstruction);
                 }
 
-                throw new Error(`Local model unavailable. Make sure Ollama is running at ${this.getLocalEndpoint()}. To install: brew install ollama && ollama pull llama3.2`);
+                throw new Error(`Local model unavailable. Ensure Ollama is running at ${this.getLocalEndpoint()}. If not installed, visit ollama.com to download.`);
             }
         }
 

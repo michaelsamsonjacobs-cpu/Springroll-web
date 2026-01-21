@@ -4,8 +4,8 @@
     "identifier": "ai.springroll.team",
     "build": {
         "beforeDevCommand": "npm run dev",
-        "beforeBuildCommand": "npm run build",
-        "devUrl": "http://localhost:5173",
+        "beforeBuildCommand": "node scripts/build-tauri.js",
+        "devUrl": "http://localhost:5173/app/",
         "frontendDist": "../dist"
     },
     "app": {

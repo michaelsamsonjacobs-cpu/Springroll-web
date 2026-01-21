@@ -21,7 +21,7 @@ import WebLLMService from './services/WebLLMService';
 import { GrantAgentDashboard } from './components/GrantAgentDashboard';
 import FeedbackService from './services/FeedbackService';
 import { ShareWorkspaceModal } from './components/ShareWorkspaceModal';
-import { RalphAgentPanel } from './components/RalphAgentPanel';
+import { RalphAgentDashboard } from './components/RalphAgentDashboard';
 
 // Runtime Tauri invoke detection - avoid static import that breaks web builds
 const invoke = typeof window !== 'undefined' && window.__TAURI__?.core?.invoke
@@ -43,7 +43,7 @@ const NAV_ITEMS = [
     { id: 'chatbot', label: 'Bot Builder', icon: Bot, color: '#f43f5e' },
     { id: 'automation', label: 'Automation', icon: Globe, color: '#eab308' },
     { id: 'docs', label: 'Doc Builder', icon: FileText, color: '#ec4899' },
-    { id: 'ralph', label: 'Ralph Agent', icon: Bot, color: '#f59e0b', isFloating: true },
+    { id: 'ralph', label: 'Ralph Agent', icon: Bot, color: '#f59e0b' },
     { id: 'grants', label: 'Opportunity Finder', icon: Target, color: '#10b981' },
     { id: 'gtm', label: 'GTM Agent', icon: Target, color: '#06b6d4' },
     { id: 'help', label: 'Help Center', icon: HelpCircle, color: '#f59e0b' },
@@ -73,8 +73,7 @@ function App() {
 
     useEffect(() => {
         const handleOpenRalph = (e) => {
-            setShowRalph(true);
-            // We could set pre-filled task here if RalphAgentPanel supported it
+            setActiveView('ralph');
         };
         window.addEventListener('open-ralph', handleOpenRalph);
         return () => window.removeEventListener('open-ralph', handleOpenRalph);
@@ -527,6 +526,12 @@ function App() {
                             <HelpCenter />
                         </div>
                     )}
+
+                    {activeView === 'ralph' && (
+                        <div style={{ height: '100%', overflow: 'hidden' }}>
+                            <RalphAgentDashboard />
+                        </div>
+                    )}
                 </main>
             </div>
 
@@ -539,10 +544,7 @@ function App() {
                 onClose={() => setShowShareModal(false)}
             />
 
-            {/* Ralph autonomous Agent Panel */}
-            <AnimatePresence>
-                {showRalph && <RalphAgentPanel onClose={() => setShowRalph(false)} />}
-            </AnimatePresence>
+            {/* Ralph autonomous Agent Panel - Removed in favor of Dashboard */}
         </div>
     );
 }
