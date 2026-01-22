@@ -8,6 +8,7 @@ import { RalphAgentService, RALPH_STATUS, RALPH_TASK_TYPES } from '../services/R
 import GlobalBrainService from '../services/GlobalBrainService';
 import { AutomationService } from '../services/AutomationService';
 import { motion, AnimatePresence } from 'framer-motion';
+import CommandCenterCanvas from './CommandCenterCanvas';
 
 export const RalphAgentDashboard = () => {
     // --- State ---
@@ -337,104 +338,9 @@ export const RalphAgentDashboard = () => {
                         </div>
                     </div>
 
-                    {/* Active Mission */}
-                    {activeTask && (
-                        <div style={{ marginBottom: '32px' }}>
-                            <h3 style={styles.sectionTitle}>Active Mission</h3>
-                            <div style={{
-                                ...styles.card,
-                                background: 'linear-gradient(135deg, rgba(168,85,247,0.1), rgba(236,72,153,0.1))',
-                                border: '1px solid rgba(168,85,247,0.3)',
-                            }}>
-                                <div style={{ display: 'flex', alignItems: 'start', gap: '20px' }}>
-                                    <div style={{
-                                        width: '48px', height: '48px', borderRadius: '12px',
-                                        background: 'linear-gradient(135deg, #a855f7, #ec4899)',
-                                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                        boxShadow: '0 4px 12px rgba(168,85,247,0.3)'
-                                    }}>
-                                        <Loader2 size={24} color="white" className="animate-spin" />
-                                    </div>
-                                    <div style={{ flex: 1 }}>
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
-                                            <span style={{
-                                                fontSize: '11px', color: '#e879f9', fontWeight: 'bold', textTransform: 'uppercase',
-                                                background: 'rgba(232,121,249,0.1)', padding: '4px 8px', borderRadius: '100px', border: '1px solid rgba(232,121,249,0.2)'
-                                            }}>In Progress</span>
-                                            <span style={{ fontSize: '12px', color: '#64748b' }}>ID: {activeTask.id}</span>
-                                        </div>
-                                        <h3 style={{ margin: '0 0 16px 0', fontSize: '18px', fontWeight: 'bold', color: 'white', lineHeight: 1.4 }}>
-                                            {activeTask.description}
-                                        </h3>
-
-                                        {/* Progress Bar */}
-                                        {steps.length > 0 && (
-                                            <div style={{ marginBottom: '16px' }}>
-                                                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px', fontSize: '11px', color: '#94a3b8' }}>
-                                                    <span>Mission Progress</span>
-                                                    <span style={{ color: '#a855f7', fontWeight: 'bold' }}>
-                                                        {Math.round((steps.filter(s => s.status === 'complete').length / steps.length) * 100)}%
-                                                    </span>
-                                                </div>
-                                                <div style={{ height: '6px', borderRadius: '3px', background: 'rgba(15,23,42,0.5)', overflow: 'hidden' }}>
-                                                    <div style={{
-                                                        height: '100%',
-                                                        width: `${(steps.filter(s => s.status === 'complete').length / steps.length) * 100}%`,
-                                                        background: 'linear-gradient(90deg, #a855f7, #ec4899)',
-                                                        borderRadius: '3px',
-                                                        transition: 'width 0.5s ease-out'
-                                                    }} />
-                                                </div>
-                                            </div>
-                                        )}
-
-                                        <div style={{ display: 'flex', gap: '16px', fontSize: '12px', color: '#94a3b8' }}>
-                                            <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><Clock size={14} /> {new Date(activeTask.timestamp).toLocaleTimeString()}</span>
-                                            <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><Cpu size={14} /> {activeTask.type}</span>
-                                            <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><History size={14} /> {iteration} iterations</span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    )}
-
-                    {/* Pending Missions */}
-                    <div>
-                        <h3 style={styles.sectionTitle}>Pending Missions ({taskQueue.filter(t => t !== activeTask).length})</h3>
-                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '16px' }}>
-                            {taskQueue.filter(t => t !== activeTask).map(task => (
-                                <div key={task.id} style={{
-                                    ...styles.card,
-                                    cursor: 'pointer',
-                                    transition: 'all 0.2s',
-                                    display: 'flex', flexDirection: 'column', gap: '12px'
-                                }}>
-                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                        <div style={{
-                                            width: '32px', height: '32px', borderRadius: '8px',
-                                            background: 'rgba(255,255,255,0.05)',
-                                            display: 'flex', alignItems: 'center', justifyContent: 'center'
-                                        }}>
-                                            <Square size={14} color="#94a3b8" />
-                                        </div>
-                                        <span style={{ fontSize: '11px', color: '#64748b' }}>{new Date(task.timestamp).toLocaleTimeString()}</span>
-                                    </div>
-                                    <div style={{ fontSize: '14px', fontWeight: 600, color: '#e2e8f0' }}>{task.description}</div>
-                                    <span style={{
-                                        alignSelf: 'flex-start', fontSize: '10px', padding: '2px 8px', borderRadius: '4px',
-                                        background: 'rgba(255,255,255,0.05)', color: '#94a3b8', border: '1px solid rgba(255,255,255,0.05)'
-                                    }}>
-                                        {task.type}
-                                    </span>
-                                </div>
-                            ))}
-                            {taskQueue.length === 0 && !activeTask && (
-                                <div style={{ padding: '32px', textAlign: 'center', color: '#64748b', fontSize: '13px', fontStyle: 'italic', background: 'rgba(255,255,255,0.02)', borderRadius: '16px' }}>
-                                    No pending missions
-                                </div>
-                            )}
-                        </div>
+                    {/* Command Center Canvas (Visual Orchestration) */}
+                    <div style={{ flex: 1, minHeight: '500px', borderRadius: '16px', overflow: 'hidden', border: '1px solid rgba(255,255,255,0.05)', position: 'relative' }}>
+                        <CommandCenterCanvas />
                     </div>
                 </div>
 
