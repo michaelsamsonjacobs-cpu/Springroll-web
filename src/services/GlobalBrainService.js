@@ -10,6 +10,35 @@ import FeedbackService from './FeedbackService';
 
 export const GlobalBrainService = {
     /**
+     * Recall relevant knowledge from the global brain.
+     * @param {string} query - The search query (usually the task/step description)
+     * @param {number} limit - Max number of results to return
+     * @param {number} threshold - Minimum similarity score (0-1)
+     * @returns {Promise<Array<{content: string, metadata: object, score: number}>>}
+     */
+    async recall(query, limit = 3, threshold = 0.6) {
+        if (!query) return [];
+
+        console.log(`[GlobalBrain] Recalling for: "${query.slice(0, 50)}..."`);
+
+        try {
+            const results = await EmbeddingService.search(query, limit);
+
+            // Filter by threshold
+            const relevant = results.filter(r => r.score >= threshold);
+
+            if (relevant.length > 0) {
+                console.log(`[GlobalBrain] Found ${relevant.length} relevant memories.`);
+            }
+
+            return relevant;
+        } catch (e) {
+            console.error('[GlobalBrain] Recall failed:', e);
+            return [];
+        }
+    },
+
+    /**
      * Learn from a piece of content that the user has marked as high quality.
      * @param {string} content - The text content to learn from
      * @param {string} source - The source of the content (e.g., 'ralph', 'doc-builder')

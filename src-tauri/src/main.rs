@@ -144,12 +144,37 @@ fn watch_directory(handle: tauri::AppHandle, path: String) -> String {
     format!("Watching: {}", path)
 }
 
+#[tauri::command]
+fn run_git_command(args: Vec<String>, cwd: Option<String>) -> Result<String, String> {
+    let mut command = std::process::Command::new("git");
+    command.args(&args);
+    
+    if let Some(dir) = cwd {
+        command.current_dir(dir);
+    }
+    
+    #[cfg(target_os = "windows")]
+    use std::os::windows::process::CommandExt;
+    #[cfg(target_os = "windows")]
+    const CREATE_NO_WINDOW: u32 = 0x08000000;
+    #[cfg(target_os = "windows")]
+    command.creation_flags(CREATE_NO_WINDOW);
+
+    let output = command.output().map_err(|e| format!("Failed to execute git: {}", e))?;
+    
+    if output.status.success() {
+        Ok(String::from_utf8_lossy(&output.stdout).to_string())
+    } else {
+        Err(format!("Git Error: {}", String::from_utf8_lossy(&output.stderr)))
+    }
+}
+
 fn main() {
     tauri::Builder::default()
         .plugin(tauri_plugin_shell::init())
         .plugin(tauri_plugin_fs::init())
         .plugin(tauri_plugin_dialog::init())
-        .invoke_handler(tauri::generate_handler![greet, read_file_content, get_system_info, run_automation_sidecar, launch_app, start_ollama, watch_directory])
+        .invoke_handler(tauri::generate_handler![greet, read_file_content, get_system_info, run_automation_sidecar, launch_app, start_ollama, watch_directory, run_git_command])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

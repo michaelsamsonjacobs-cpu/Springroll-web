@@ -686,6 +686,7 @@ const SettingsModal = ({ onClose }) => {
 
     // Real Hardware Stats
     const [gpuInfo, setGpuInfo] = useState(null);
+    const [nativeGpuInfo, setNativeGpuInfo] = useState(null);
     const [webGpuSupported, setWebGpuSupported] = useState(false);
     const [feedbackStats, setFeedbackStats] = useState(null);
 
@@ -706,11 +707,22 @@ const SettingsModal = ({ onClose }) => {
     useEffect(() => {
         // Fetch Real GPU Info if available
         const fetchHardware = async () => {
+            // 1. WebGPU Check (Browser)
             const supported = await WebLLMService.isSupported();
             setWebGpuSupported(supported);
             if (supported) {
                 const info = await WebLLMService.getGPUInfo();
                 setGpuInfo(info);
+            }
+
+            // 2. Native GPU Check (Rust/OS)
+            try {
+                const invoke = window.__TAURI__ ? window.__TAURI__.core.invoke : async () => "{}";
+                const nativeJson = await invoke('get_system_info');
+                const nativeData = JSON.parse(nativeJson);
+                setNativeGpuInfo(nativeData);
+            } catch (e) {
+                console.warn("Failed to get native system info", e);
             }
         };
         fetchHardware();
@@ -1135,6 +1147,31 @@ const SettingsModal = ({ onClose }) => {
                                         Device ID: {gpuInfo.device}
                                     </div>
                                 )}
+                            </div>
+
+                            <div style={{
+                                padding: '16px', borderRadius: '12px', background: 'rgba(16,185,129,0.1)',
+                                border: '1px solid rgba(255,255,255,0.1)', marginBottom: '16px'
+                            }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '12px' }}>
+                                    <div style={{ padding: '8px', borderRadius: '8px', background: '#10b981', color: 'white' }}>
+                                        <Cpu size={20} />
+                                    </div>
+                                    <div>
+                                        <div style={{ fontSize: '14px', fontWeight: 'bold', color: 'white' }}>
+                                            {nativeGpuInfo?.gpu || 'Scanning Native Hardware...'}
+                                        </div>
+                                        <div style={{ fontSize: '11px', color: '#64748b' }}>
+                                            Native CUDA Adapter (Ollama Backend)
+                                        </div>
+                                    </div>
+                                    <div style={{ marginLeft: 'auto', padding: '4px 8px', borderRadius: '4px', background: nativeGpuInfo?.gpu?.includes('NVIDIA') ? 'rgba(16,185,129,0.2)' : 'rgba(234,179,8,0.2)', color: nativeGpuInfo?.gpu?.includes('NVIDIA') ? '#10b981' : '#eab308', fontSize: '10px', fontWeight: 'bold' }}>
+                                        {nativeGpuInfo?.gpu?.includes('NVIDIA') ? 'DETECTED' : 'CPU FALLBACK'}
+                                    </div>
+                                </div>
+                                <div style={{ fontSize: '11px', color: '#94a3b8', lineHeight: 1.5 }}>
+                                    <strong>Note:</strong> CUDA cores lazy-load upon the first AI request to save VRAM. Fan spin-up is normal during the first 5 seconds of generation.
+                                </div>
                             </div>
 
                             <label style={styles.label}>System Resources (Browser)</label>

@@ -64,7 +64,12 @@ const AgentNode = ({ data, isConnectable }) => {
             {/* Footer */}
             <div className="flex items-center justify-between text-[10px] text-slate-500 mt-2">
                 <span className="flex items-center gap-1">
-                    <Shield size={10} className="text-blue-500" /> Local Worktree
+                    <Shield size={10} className="text-blue-500" />
+                    {data.worktree ? (
+                        <span title={data.worktree} className="truncate max-w-[150px]">{data.worktree.split('/').pop()}</span>
+                    ) : (
+                        <span>Main Branch</span>
+                    )}
                 </span>
                 <span className="font-mono opacity-50">ID: {data.id}</span>
             </div>
