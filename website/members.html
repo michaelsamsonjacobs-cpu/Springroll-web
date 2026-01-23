@@ -5,18 +5,98 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Members Portal | Springroll Team</title>
+    <link rel="icon" type="image/png" href="favicon.png">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
         href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700&family=Inter:wght@300;400;500;600&display=swap"
         rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js';
+        import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js';
+        import { getFirestore, doc, getDoc } from 'https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js';
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyDaqDdWnZOeL2MXbc__eUA4dlb1Fs8-na0",
+            authDomain: "springroll-171de.firebaseapp.com",
+            projectId: "springroll-171de",
+            storageBucket: "springroll-171de.firebasestorage.app",
+            messagingSenderId: "129903623333",
+            appId: "1:129903623333:web:66792cb844c1e50172a14c"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        const provider = new GoogleAuthProvider();
+
+        window.handleSignIn = async () => {
+            try {
+                const result = await signInWithPopup(auth, provider);
+                checkAccess(result.user);
+            } catch (error) {
+                console.error('Sign in error:', error);
+                alert('Sign in failed: ' + error.message);
+            }
+        };
+
+        window.handleSignOut = async () => {
+            await signOut(auth);
+            showLoginScreen();
+        };
+
+        async function checkAccess(user) {
+            const email = user.email.toLowerCase().trim();
+            const docRef = doc(db, 'allowed_users', email);
+            const docSnap = await getDoc(docRef);
+
+            if (docSnap.exists()) {
+                showMembersContent(user);
+            } else {
+                showAccessDenied(user.email);
+            }
+        }
+
+        function showLoginScreen() {
+            document.getElementById('login-screen').classList.remove('hidden');
+            document.getElementById('members-content').classList.add('hidden');
+            document.getElementById('access-denied').classList.add('hidden');
+        }
+
+        function showMembersContent(user) {
+            document.getElementById('login-screen').classList.add('hidden');
+            document.getElementById('members-content').classList.remove('hidden');
+            document.getElementById('access-denied').classList.add('hidden');
+            document.getElementById('user-name').textContent = user.displayName || 'Member';
+            document.getElementById('user-email').textContent = user.email;
+            if (user.photoURL) {
+                document.getElementById('user-avatar').src = user.photoURL;
+                document.getElementById('user-avatar').classList.remove('hidden');
+            }
+        }
+
+        function showAccessDenied(email) {
+            document.getElementById('login-screen').classList.add('hidden');
+            document.getElementById('members-content').classList.add('hidden');
+            document.getElementById('access-denied').classList.remove('hidden');
+            document.getElementById('denied-email').textContent = email;
+        }
+
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                checkAccess(user);
+            } else {
+                showLoginScreen();
+            }
+        });
+    </script>
     <script>
         tailwind.config = {
             theme: {
                 extend: {
                     colors: {
-                        springroll: { dark: '#020617', card: '#0f172a', blue: '#3b82f6', purple: '#a855f7', text: '#f8fafc' }
+                        springroll: { dark: '#020617', card: '#0f172a', blue: '#3b82f6', purple: '#a855f7' }
                     },
                     fontFamily: { sora: ['Sora', 'sans-serif'], inter: ['Inter', 'sans-serif'] }
                 }
@@ -48,122 +128,343 @@
     </style>
 </head>
 
-<body class="font-inter antialiased">
+<body class="font-inter antialiased min-h-screen">
 
     <!-- Nav -->
     <nav class="fixed top-0 w-full z-50 border-b border-white/5 bg-[#020617]/80 backdrop-blur-xl">
         <div class="max-w-7xl mx-auto px-6 h-16 flex justify-between items-center">
             <a href="/" class="flex items-center gap-3">
-                <div
-                    class="w-8 h-8 bg-gradient-to-br from-blue-600 to-purple-600 rounded-lg flex items-center justify-center text-white font-bold font-sora shadow-lg">
-                    S</div>
+                <img src="logo.png" alt="Springroll" class="w-8 h-8 rounded-lg shadow-lg">
                 <span class="font-sora font-semibold text-lg tracking-tight">springroll team</span>
             </a>
             <div class="flex items-center gap-4">
-                <div class="flex items-center gap-3">
-                    <img id="user-avatar" src="" alt="" class="w-8 h-8 rounded-full bg-slate-700">
-                    <span id="user-name" class="text-sm font-medium">Loading...</span>
-                </div>
-                <button onclick="SpringrollAuth.signOut()"
-                    class="text-sm text-slate-400 hover:text-white transition-colors">
-                    Sign Out
-                </button>
+                <a href="/" class="text-sm text-slate-400 hover:text-white transition-colors">Home</a>
+                <a href="pricing.html" class="text-sm text-slate-400 hover:text-white transition-colors">Pricing</a>
             </div>
         </div>
     </nav>
 
-    <!-- Members Content -->
-    <section class="pt-32 pb-20 px-6 max-w-4xl mx-auto">
-        <div class="text-center mb-12">
-            <h1 class="text-3xl md:text-4xl font-sora font-bold mb-4">
-                Welcome to <span class="text-gradient">Springroll</span>
-            </h1>
-            <p id="user-email" class="text-slate-400">user@example.com</p>
+    <!-- Login Screen -->
+    <div id="login-screen" class="pt-32 pb-20 px-6 max-w-md mx-auto text-center">
+        <div class="glass-card p-12 rounded-3xl">
+            <div
+                class="w-16 h-16 bg-gradient-to-br from-blue-600 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                </svg>
+            </div>
+            <h1 class="text-2xl font-sora font-bold mb-2">Members Portal</h1>
+            <p class="text-slate-400 mb-8">Sign in to access downloads, documentation, and support.</p>
+            <button onclick="handleSignIn()"
+                class="w-full bg-white text-slate-900 px-6 py-3 rounded-xl font-semibold flex items-center justify-center gap-3 hover:bg-slate-100 transition-colors">
+                <svg width="20" height="20" viewBox="0 0 24 24">
+                    <path
+                        d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+                        fill="#4285F4" />
+                    <path
+                        d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+                        fill="#34A853" />
+                    <path
+                        d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.84z"
+                        fill="#FBBC05" />
+                    <path
+                        d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
+                        fill="#EA4335" />
+                </svg>
+                Sign in with Google
+            </button>
         </div>
+    </div>
 
-        <!-- Subscription Status -->
-        <div class="glass-card p-8 rounded-3xl mb-8">
-            <div class="flex items-center justify-between mb-6">
+    <!-- Access Denied -->
+    <div id="access-denied" class="hidden pt-32 pb-20 px-6 max-w-md mx-auto text-center">
+        <div class="glass-card p-12 rounded-3xl border-red-500/20">
+            <div
+                class="w-16 h-16 bg-gradient-to-br from-red-500 to-orange-500 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+            </div>
+            <h1 class="text-2xl font-sora font-bold mb-2">Access Required</h1>
+            <p class="text-slate-400 mb-4">The account <strong id="denied-email" class="text-red-400"></strong> does not
+                have access.</p>
+            <p class="text-sm text-slate-500 mb-8">After purchase, your account will be activated within 24 hours.</p>
+            <a href="pricing.html"
+                class="block w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 py-3 rounded-xl font-semibold hover:opacity-90 transition-opacity mb-4">
+                Purchase Access
+            </a>
+            <button onclick="handleSignOut()"
+                class="text-slate-400 text-sm hover:text-white transition-colors underline">
+                Try a different account
+            </button>
+        </div>
+    </div>
+
+    <!-- Members Content -->
+    <div id="members-content" class="hidden pt-24 pb-20 px-6 max-w-6xl mx-auto">
+
+        <!-- User Header -->
+        <div class="flex items-center justify-between mb-12 glass-card p-4 rounded-2xl">
+            <div class="flex items-center gap-4">
+                <img id="user-avatar" class="hidden w-10 h-10 rounded-full" src="" alt="Avatar">
                 <div>
-                    <h2 class="text-xl font-sora font-bold mb-2">Your Subscription</h2>
-                    <p class="text-sm text-slate-400">
-                        Plan: <span id="plan-name" class="text-white font-semibold">FREE</span>
-                    </p>
-                </div>
-                <div class="text-right">
-                    <p class="text-sm text-slate-400 mb-1">Status</p>
-                    <p id="subscription-status" class="text-yellow-400 font-semibold">No active subscription</p>
+                    <div class="font-semibold" id="user-name">Member</div>
+                    <div class="text-sm text-slate-400" id="user-email"></div>
                 </div>
             </div>
-
-            <!-- Upgrade CTA (shown if not subscribed) -->
-            <div id="upgrade-section" class="border-t border-white/10 pt-6">
-                <p class="text-sm text-slate-400 mb-4">
-                    Upgrade to Pro or Team to unlock all features and download the Windows app.
-                </p>
-                <a href="pricing.html"
-                    class="inline-block bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 py-3 rounded-xl font-bold hover:opacity-90 transition-opacity">
-                    View Plans
-                </a>
-            </div>
+            <button onclick="handleSignOut()" class="text-sm text-slate-400 hover:text-white transition-colors">Sign
+                Out</button>
         </div>
 
         <!-- Download Section -->
-        <div class="glass-card p-8 rounded-3xl glow-blue">
-            <div class="flex items-center gap-4 mb-6">
-                <div
-                    class="w-16 h-16 bg-gradient-to-br from-blue-600 to-purple-600 rounded-2xl flex items-center justify-center">
-                    <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                    </svg>
+        <section class="mb-16">
+            <h2 class="text-3xl font-sora font-bold mb-6">🚀 Download & Access</h2>
+            <div class="grid md:grid-cols-2 gap-6">
+                <div class="glass-card p-8 rounded-3xl glow-blue">
+                    <div class="flex items-center gap-4 mb-4">
+                        <div class="w-12 h-12 bg-blue-600/20 rounded-xl flex items-center justify-center">
+                            <svg class="w-6 h-6 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                            </svg>
+                        </div>
+                        <div>
+                            <h3 class="font-bold text-lg">Windows Desktop App</h3>
+                            <p class="text-sm text-slate-400">v0.5.2 • 22 MB</p>
+                        </div>
+                    </div>
+                    <p class="text-slate-300 text-sm mb-6">Full-featured desktop application with GPU acceleration and
+                        offline support.</p>
+                    <a href="https://github.com/michaelsamsonjacobs-cpu/Springroll-web/releases/latest" target="_blank"
+                        class="block w-full bg-blue-600 text-white px-6 py-3 rounded-xl font-semibold text-center hover:bg-blue-500 transition-colors">
+                        Download for Windows
+                    </a>
                 </div>
-                <div>
-                    <h2 class="text-xl font-sora font-bold">Download Springroll Team</h2>
-                    <p class="text-sm text-slate-400">Windows 10/11 • 64-bit • v1.0.0</p>
+                <div class="glass-card p-8 rounded-3xl">
+                    <div class="flex items-center gap-4 mb-4">
+                        <div class="w-12 h-12 bg-purple-600/20 rounded-xl flex items-center justify-center">
+                            <svg class="w-6 h-6 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9" />
+                            </svg>
+                        </div>
+                        <div>
+                            <h3 class="font-bold text-lg">Web Version (Beta)</h3>
+                            <p class="text-sm text-slate-400">WebGPU Required</p>
+                        </div>
+                    </div>
+                    <p class="text-slate-300 text-sm mb-6">Access from any browser with WebGPU support. Chrome
+                        recommended.</p>
+                    <a href="/app/"
+                        class="block w-full bg-purple-600/20 border border-purple-500/30 text-white px-6 py-3 rounded-xl font-semibold text-center hover:bg-purple-600/30 transition-colors">
+                        Launch Web App
+                    </a>
+                </div>
+            </div>
+        </section>
+
+        <!-- Quick Start Guides -->
+        <section class="mb-16">
+            <h2 class="text-3xl font-sora font-bold mb-6">📚 Quick Start Guides</h2>
+            <div class="grid md:grid-cols-3 gap-6">
+                <a href="#guide-getting-started"
+                    class="glass-card p-6 rounded-2xl hover:bg-white/5 transition-colors group">
+                    <div class="text-2xl mb-3">🏁</div>
+                    <h3 class="font-bold mb-2 group-hover:text-blue-400 transition-colors">Getting Started</h3>
+                    <p class="text-sm text-slate-400">Install, sign in, and run your first agent in 5 minutes.</p>
+                </a>
+                <a href="#guide-command-center"
+                    class="glass-card p-6 rounded-2xl hover:bg-white/5 transition-colors group">
+                    <div class="text-2xl mb-3">🎛️</div>
+                    <h3 class="font-bold mb-2 group-hover:text-blue-400 transition-colors">Command Center</h3>
+                    <p class="text-sm text-slate-400">Orchestrate multiple agents on the infinite canvas.</p>
+                </a>
+                <a href="#guide-ralph" class="glass-card p-6 rounded-2xl hover:bg-white/5 transition-colors group">
+                    <div class="text-2xl mb-3">🤖</div>
+                    <h3 class="font-bold mb-2 group-hover:text-blue-400 transition-colors">Ralph Agent</h3>
+                    <p class="text-sm text-slate-400">Autonomous document creation with learning.</p>
+                </a>
+                <a href="#guide-docbuilder" class="glass-card p-6 rounded-2xl hover:bg-white/5 transition-colors group">
+                    <div class="text-2xl mb-3">📄</div>
+                    <h3 class="font-bold mb-2 group-hover:text-blue-400 transition-colors">Doc Builder</h3>
+                    <p class="text-sm text-slate-400">Create pitch decks, proposals, and reports.</p>
+                </a>
+                <a href="#guide-legal" class="glass-card p-6 rounded-2xl hover:bg-white/5 transition-colors group">
+                    <div class="text-2xl mb-3">⚖️</div>
+                    <h3 class="font-bold mb-2 group-hover:text-blue-400 transition-colors">Legal Agent</h3>
+                    <p class="text-sm text-slate-400">Patent scouting and contract drafting.</p>
+                </a>
+                <a href="#guide-grants" class="glass-card p-6 rounded-2xl hover:bg-white/5 transition-colors group">
+                    <div class="text-2xl mb-3">💰</div>
+                    <h3 class="font-bold mb-2 group-hover:text-blue-400 transition-colors">Grant Finder</h3>
+                    <p class="text-sm text-slate-400">Find and apply to SBIR/STTR grants.</p>
+                </a>
+            </div>
+        </section>
+
+        <!-- Detailed Guides -->
+        <section class="mb-16 space-y-12">
+            <div id="guide-getting-started" class="glass-card p-8 rounded-3xl">
+                <h3 class="text-2xl font-sora font-bold mb-6 flex items-center gap-3">
+                    <span class="text-3xl">🏁</span> Getting Started
+                </h3>
+                <div class="space-y-6 text-slate-300">
+                    <div class="flex gap-4">
+                        <div
+                            class="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-sm font-bold shrink-0">
+                            1</div>
+                        <div>
+                            <h4 class="font-bold text-white mb-1">Download & Install</h4>
+                            <p class="text-sm">Download the Windows installer above and run it. Windows SmartScreen may
+                                warn you — click "More info" then "Run anyway".</p>
+                        </div>
+                    </div>
+                    <div class="flex gap-4">
+                        <div
+                            class="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-sm font-bold shrink-0">
+                            2</div>
+                        <div>
+                            <h4 class="font-bold text-white mb-1">Sign In with Google</h4>
+                            <p class="text-sm">Use the same Google account you used to purchase access. Your email must
+                                be in our whitelist.</p>
+                        </div>
+                    </div>
+                    <div class="flex gap-4">
+                        <div
+                            class="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-sm font-bold shrink-0">
+                            3</div>
+                        <div>
+                            <h4 class="font-bold text-white mb-1">Connect a Workspace</h4>
+                            <p class="text-sm">Click the + button in the left sidebar to index a folder. This lets
+                                agents access your local files.</p>
+                        </div>
+                    </div>
+                    <div class="flex gap-4">
+                        <div
+                            class="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-sm font-bold shrink-0">
+                            4</div>
+                        <div>
+                            <h4 class="font-bold text-white mb-1">Start a Conversation</h4>
+                            <p class="text-sm">Type in the chat box to interact with AI. Use the sidebar to switch
+                                between agents (Ralph, Legal, Dev, etc.).</p>
+                        </div>
+                    </div>
                 </div>
             </div>
 
-            <button id="download-btn" onclick="SpringrollAuth.downloadApp()" disabled
-                class="w-full bg-slate-700 text-slate-400 px-8 py-4 rounded-xl font-bold cursor-not-allowed">
-                Active subscription required
-            </button>
+            <div id="guide-command-center" class="glass-card p-8 rounded-3xl">
+                <h3 class="text-2xl font-sora font-bold mb-6 flex items-center gap-3">
+                    <span class="text-3xl">🎛️</span> Command Center
+                </h3>
+                <div class="space-y-4 text-slate-300 text-sm">
+                    <p>The Command Center is a visual canvas where you can orchestrate multiple agents simultaneously.
+                    </p>
+                    <ul class="list-disc list-inside space-y-2 ml-4">
+                        <li><strong>Drag agents</strong> onto the canvas to position them</li>
+                        <li><strong>Click an agent</strong> to view its terminal output</li>
+                        <li><strong>Connect agents</strong> by drawing lines between them to create workflows</li>
+                        <li><strong>Right-click</strong> to add new agents or delete existing ones</li>
+                    </ul>
+                    <p class="text-slate-400">Agents run in isolated Git worktrees, so they can work in parallel without
+                        conflicts.</p>
+                </div>
+            </div>
 
-            <p class="text-xs text-slate-500 mt-4 text-center">
-                Your download will be tracked for support purposes. By downloading, you agree to our terms of service.
-            </p>
-        </div>
+            <div id="guide-ralph" class="glass-card p-8 rounded-3xl">
+                <h3 class="text-2xl font-sora font-bold mb-6 flex items-center gap-3">
+                    <span class="text-3xl">🤖</span> Ralph Agent
+                </h3>
+                <div class="space-y-4 text-slate-300 text-sm">
+                    <p>Ralph is your autonomous worker that learns from every task.</p>
+                    <ul class="list-disc list-inside space-y-2 ml-4">
+                        <li>Navigate to <strong>Ralph Agent</strong> in the sidebar</li>
+                        <li>Type a mission: e.g., "Write a project proposal for AI tutoring platform"</li>
+                        <li>Select the task type (Document, Code, Research)</li>
+                        <li>Click <strong>Start Mission</strong></li>
+                        <li>Watch Ralph break down the task, execute steps, and self-correct</li>
+                        <li>After completion, click <strong>Save to Global Brain</strong> to help Ralph learn</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
 
-        <!-- Quick Links -->
-        <div class="mt-8 grid md:grid-cols-3 gap-4">
-            <a href="#" class="glass-card p-6 rounded-2xl text-center hover:bg-white/5 transition-colors">
-                <div class="text-2xl mb-2">📚</div>
-                <p class="font-semibold">Documentation</p>
-            </a>
-            <a href="#" class="glass-card p-6 rounded-2xl text-center hover:bg-white/5 transition-colors">
-                <div class="text-2xl mb-2">💬</div>
-                <p class="font-semibold">Discord Community</p>
-            </a>
-            <a href="mailto:support@springroll.ai"
-                class="glass-card p-6 rounded-2xl text-center hover:bg-white/5 transition-colors">
-                <div class="text-2xl mb-2">🎧</div>
-                <p class="font-semibold">Get Support</p>
-            </a>
-        </div>
-    </section>
+        <!-- Support Section -->
+        <section class="mb-16">
+            <h2 class="text-3xl font-sora font-bold mb-6">💬 Support</h2>
+            <div class="glass-card p-8 rounded-3xl">
+                <div class="grid md:grid-cols-2 gap-8">
+                    <div>
+                        <h3 class="font-bold text-lg mb-4">Contact Support</h3>
+                        <form class="space-y-4"
+                            onsubmit="event.preventDefault(); alert('Message sent! We will respond within 24 hours.');">
+                            <div>
+                                <label class="block text-sm text-slate-400 mb-2">Subject</label>
+                                <input type="text" placeholder="What do you need help with?"
+                                    class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:border-blue-500">
+                            </div>
+                            <div>
+                                <label class="block text-sm text-slate-400 mb-2">Message</label>
+                                <textarea rows="4" placeholder="Describe your issue or question..."
+                                    class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 resize-none"></textarea>
+                            </div>
+                            <button type="submit"
+                                class="bg-blue-600 text-white px-6 py-3 rounded-xl font-semibold hover:bg-blue-500 transition-colors">
+                                Send Message
+                            </button>
+                        </form>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-lg mb-4">Quick Help</h3>
+                        <div class="space-y-4">
+                            <a href="mailto:support@springroll.ai"
+                                class="flex items-center gap-4 p-4 bg-white/5 rounded-xl hover:bg-white/10 transition-colors">
+                                <div class="w-10 h-10 bg-blue-600/20 rounded-lg flex items-center justify-center">
+                                    <svg class="w-5 h-5 text-blue-400" fill="none" stroke="currentColor"
+                                        viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                                    </svg>
+                                </div>
+                                <div>
+                                    <div class="font-semibold">Email Support</div>
+                                    <div class="text-sm text-slate-400">support@springroll.ai</div>
+                                </div>
+                            </a>
+                            <a href="https://github.com/michaelsamsonjacobs-cpu/Springroll-web/issues" target="_blank"
+                                class="flex items-center gap-4 p-4 bg-white/5 rounded-xl hover:bg-white/10 transition-colors">
+                                <div class="w-10 h-10 bg-purple-600/20 rounded-lg flex items-center justify-center">
+                                    <svg class="w-5 h-5 text-purple-400" fill="currentColor" viewBox="0 0 24 24">
+                                        <path
+                                            d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z" />
+                                    </svg>
+                                </div>
+                                <div>
+                                    <div class="font-semibold">GitHub Issues</div>
+                                    <div class="text-sm text-slate-400">Report bugs & feature requests</div>
+                                </div>
+                            </a>
+                            <div class="p-4 bg-green-500/10 border border-green-500/20 rounded-xl">
+                                <div class="flex items-center gap-2 text-green-400 font-semibold mb-1">
+                                    <span class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
+                                    Response Time
+                                </div>
+                                <div class="text-sm text-slate-300">We typically respond within 24 hours.</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </div>
 
     <!-- Footer -->
     <footer class="py-12 border-t border-white/5 text-center text-slate-500 text-sm">
         <p>© 2026 Springroll AI. The Sovereign Workstation.</p>
     </footer>
 
-    <script src="js/auth.js"></script>
-    <script>
-        // Initialize members page on load
-        document.addEventListener('DOMContentLoaded', () => {
-            SpringrollAuth.initMembersPage();
-        });
-    </script>
 </body>
 
 </html>
