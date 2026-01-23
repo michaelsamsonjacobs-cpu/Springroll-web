@@ -97,7 +97,6 @@
                     <span class="text-4xl font-bold">$29</span>
                     <span class="text-slate-400">/month</span>
                 </div>
-                <p class="text-xs text-green-400 mb-6">7-day free trial</p>
                 <ul class="space-y-4 mb-8 text-sm text-slate-300">
                     <li class="flex items-center gap-3">
                         <span class="text-green-500">✓</span> All AI Agents
@@ -115,10 +114,10 @@
                         <span class="text-green-500">✓</span> Priority support
                     </li>
                 </ul>
-                <button onclick="SpringrollAuth.startProCheckout()"
-                    class="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 py-3 rounded-xl font-bold hover:opacity-90 transition-opacity">
-                    Start Free Trial
-                </button>
+                <a href="#payment-instructions"
+                    class="block w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 py-3 rounded-xl font-bold text-center hover:opacity-90 transition-opacity">
+                    Subscribe — $29/mo
+                </a>
             </div>
 
             <!-- Team Tier -->
@@ -145,11 +144,61 @@
                         <span class="text-green-500">✓</span> Usage analytics
                     </li>
                 </ul>
-                <button onclick="SpringrollAuth.startTeamCheckout()"
-                    class="w-full border border-purple-500/50 text-white px-6 py-3 rounded-xl font-bold hover:bg-purple-500/10 transition-colors">
-                    Subscribe
-                </button>
+                <a href="#payment-instructions"
+                    class="block w-full border border-purple-500/50 text-white px-6 py-3 rounded-xl font-bold text-center hover:bg-purple-500/10 transition-colors">
+                    Subscribe — $49/user/mo
+                </a>
             </div>
+        </div>
+
+        <!-- Payment Instructions -->
+        <div id="payment-instructions"
+            class="mt-16 glass-card p-8 rounded-3xl text-center max-w-2xl mx-auto border-green-500/20">
+            <div
+                class="w-16 h-16 bg-gradient-to-br from-green-500 to-emerald-600 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
+                </svg>
+            </div>
+            <h3 class="text-2xl font-sora font-bold mb-4">How to Subscribe</h3>
+            <div class="text-left space-y-4 mb-8">
+                <div class="flex gap-4 items-start">
+                    <div
+                        class="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-sm font-bold shrink-0">
+                        1</div>
+                    <div>
+                        <h4 class="font-bold text-white">Send Payment</h4>
+                        <p class="text-sm text-slate-400">Venmo: <strong class="text-green-400">@springroll-ai</strong>
+                            or PayPal: <strong class="text-green-400">pay@springroll.ai</strong></p>
+                    </div>
+                </div>
+                <div class="flex gap-4 items-start">
+                    <div
+                        class="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-sm font-bold shrink-0">
+                        2</div>
+                    <div>
+                        <h4 class="font-bold text-white">Email Us Your Google Account</h4>
+                        <p class="text-sm text-slate-400">Send to <strong
+                                class="text-green-400">access@springroll.ai</strong> with your Google email you'll use
+                            to sign in.</p>
+                    </div>
+                </div>
+                <div class="flex gap-4 items-start">
+                    <div
+                        class="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-sm font-bold shrink-0">
+                        3</div>
+                    <div>
+                        <h4 class="font-bold text-white">Get Access Within 24 Hours</h4>
+                        <p class="text-sm text-slate-400">We'll activate your account and send you the download link.
+                        </p>
+                    </div>
+                </div>
+            </div>
+            <a href="mailto:access@springroll.ai?subject=New%20Subscription&body=Hi!%20I%20just%20paid%20for%20Springroll%20Team.%0A%0AMy%20Google%20account%20email%20is:%20"
+                class="inline-block bg-green-600 text-white px-8 py-3 rounded-xl font-bold hover:bg-green-500 transition-colors">
+                📧 Email Us After Payment
+            </a>
         </div>
 
         <!-- Enterprise CTA -->
