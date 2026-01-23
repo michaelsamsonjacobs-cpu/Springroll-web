@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { Sparkles, AlertCircle, Users, Shield, User } from 'lucide-react';
+import { Sparkles, AlertCircle, Users, Shield, User, Lock, ExternalLink } from 'lucide-react';
 import { ClassroomService } from '../services/ClassroomService';
 import { signInWithPopup } from 'firebase/auth';
 import { auth, googleProvider } from '../firebaseConfig';
+import { checkAccess, getPurchaseUrl } from '../services/AccessControlService';
 
 export const AuthScreen = ({ onLogin }) => {
     const [isLoading, setIsLoading] = useState(false);
@@ -12,6 +13,8 @@ export const AuthScreen = ({ onLogin }) => {
     const [role, setRole] = useState('student');
     const [classroomPath, setClassroomPath] = useState('');
     const [error, setError] = useState(null);
+    const [accessDenied, setAccessDenied] = useState(false);
+    const [deniedEmail, setDeniedEmail] = useState('');
 
     const handleGoogleLogin = async () => {
         setIsLoading(true);
@@ -19,6 +22,15 @@ export const AuthScreen = ({ onLogin }) => {
         try {
             const result = await signInWithPopup(auth, googleProvider);
             const user = result.user;
+
+            // Check if user is whitelisted (paying customer)
+            const hasAccess = await checkAccess(user.email);
+            if (!hasAccess) {
+                setAccessDenied(true);
+                setDeniedEmail(user.email);
+                setIsLoading(false);
+                return;
+            }
 
             if (teamMode) {
                 ClassroomService.setClassroomPath(classroomPath || 'BUS301');
@@ -70,6 +82,109 @@ export const AuthScreen = ({ onLogin }) => {
         background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)',
         color: 'white', fontSize: '14px', outline: 'none', boxSizing: 'border-box'
     };
+
+    // Access Denied Screen
+    if (accessDenied) {
+        return (
+            <div style={{
+                height: '100vh',
+                width: '100vw',
+                background: '#050816',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontFamily: "'Inter', sans-serif",
+                position: 'relative',
+                overflow: 'hidden'
+            }}>
+                {/* Background Gradients */}
+                <div style={{
+                    position: 'absolute', top: '-20%', left: '-10%',
+                    width: '600px', height: '600px',
+                    background: 'radial-gradient(circle, rgba(239,68,68,0.15) 0%, rgba(0,0,0,0) 70%)',
+                    borderRadius: '50%', pointerEvents: 'none'
+                }} />
+
+                <div style={{
+                    width: '420px',
+                    padding: '40px',
+                    background: 'rgba(10,15,26,0.7)',
+                    backdropFilter: 'blur(12px)',
+                    borderRadius: '24px',
+                    border: '1px solid rgba(239,68,68,0.2)',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)',
+                    textAlign: 'center'
+                }}>
+                    <div style={{
+                        width: '64px', height: '64px', borderRadius: '16px',
+                        background: 'linear-gradient(135deg, #ef4444, #f97316)',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        marginBottom: '24px',
+                        boxShadow: '0 0 20px rgba(239,68,68,0.3)'
+                    }}>
+                        <Lock size={32} color="white" />
+                    </div>
+
+                    <h1 style={{ margin: '0 0 8px 0', fontSize: '24px', fontWeight: 'bold', color: 'white' }}>
+                        Purchase Required
+                    </h1>
+                    <p style={{ margin: '0 0 24px 0', color: '#94a3b8', fontSize: '14px', lineHeight: 1.6 }}>
+                        Your account <strong style={{ color: '#f87171' }}>{deniedEmail}</strong> does not have access to Springroll Team.
+                    </p>
+
+                    <a
+                        href={getPurchaseUrl()}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        style={{
+                            width: '100%',
+                            padding: '14px',
+                            borderRadius: '12px',
+                            border: 'none',
+                            background: 'linear-gradient(135deg, #3b82f6, #a855f7)',
+                            color: 'white',
+                            fontSize: '14px',
+                            fontWeight: 'bold',
+                            cursor: 'pointer',
+                            textDecoration: 'none',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            gap: '8px',
+                            marginBottom: '16px'
+                        }}
+                    >
+                        <ExternalLink size={16} /> Purchase Access
+                    </a>
+
+                    <button
+                        onClick={() => {
+                            setAccessDenied(false);
+                            setDeniedEmail('');
+                        }}
+                        style={{
+                            background: 'none',
+                            border: 'none',
+                            color: '#64748b',
+                            fontSize: '13px',
+                            cursor: 'pointer',
+                            textDecoration: 'underline'
+                        }}
+                    >
+                        Try a different account
+                    </button>
+
+                    <p style={{ marginTop: '24px', fontSize: '11px', color: '#64748b', lineHeight: 1.6 }}>
+                        After purchase, we'll create your account within <strong style={{ color: '#a855f7' }}>24 hours</strong><br />
+                        and send you a download link for the software.
+                    </p>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div style={{

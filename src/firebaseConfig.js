@@ -7,6 +7,7 @@
 
 import { initializeApp } from 'firebase/app';
 import { getAuth, GoogleAuthProvider } from 'firebase/auth';
+import { getFirestore } from 'firebase/firestore';
 
 const firebaseConfig = {
     apiKey: "AIzaSyDaqDdWnZOeL2MXbc__eUA4dlb1Fs8-na0",
@@ -26,3 +27,6 @@ export const auth = getAuth(app);
 export const googleProvider = new GoogleAuthProvider();
 
 export default app;
+
+// Firestore export (for whitelist access control)
+export const db = getFirestore(app);
