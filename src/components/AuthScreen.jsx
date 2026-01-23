@@ -1,33 +1,53 @@
 import React, { useState } from 'react';
-import { Sparkles, ArrowRight, Check, AlertCircle, Users, FolderOpen, Shield, User } from 'lucide-react';
+import { Sparkles, AlertCircle, Users, Shield, User } from 'lucide-react';
 import { ClassroomService } from '../services/ClassroomService';
+import { signInWithPopup } from 'firebase/auth';
+import { auth, googleProvider } from '../firebaseConfig';
 
-export const AuthScreen = ({ onLogin, onGuest }) => {
+export const AuthScreen = ({ onLogin }) => {
     const [isLoading, setIsLoading] = useState(false);
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const [teamMode, setTeamMode] = useState(false);
-    const [role, setRole] = useState('student'); // 'admin' or 'student'
+    const [role, setRole] = useState('student');
     const [classroomPath, setClassroomPath] = useState('');
+    const [error, setError] = useState(null);
 
-    const handleGoogleLogin = () => {
+    const handleGoogleLogin = async () => {
         setIsLoading(true);
-        setTimeout(() => {
-            setIsLoading(false);
+        setError(null);
+        try {
+            const result = await signInWithPopup(auth, googleProvider);
+            const user = result.user;
+
             if (teamMode) {
                 ClassroomService.setClassroomPath(classroomPath || 'BUS301');
                 ClassroomService.setRole(role);
                 if (role === 'student') {
-                    ClassroomService.setStudentName(username || 'Student');
+                    ClassroomService.setStudentName(user.displayName || 'Student');
                 }
             }
-            onLogin({ type: 'google', name: 'Google User', role: teamMode ? role : 'personal' });
-        }, 1500);
+
+            onLogin({
+                type: 'google',
+                name: user.displayName || 'Google User',
+                email: user.email,
+                uid: user.uid,
+                photoURL: user.photoURL,
+                role: teamMode ? role : 'personal'
+            });
+        } catch (err) {
+            console.error('Google Sign-In Error:', err);
+            setError(err.message || 'Failed to sign in with Google');
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     const handleLocalLogin = (e) => {
         e.preventDefault();
         setIsLoading(true);
+        setError(null);
         setTimeout(() => {
             setIsLoading(false);
             if (username && password) {
@@ -39,6 +59,8 @@ export const AuthScreen = ({ onLogin, onGuest }) => {
                     }
                 }
                 onLogin({ type: 'local', name: username, role: teamMode ? role : 'personal' });
+            } else {
+                setError('Please enter username and password');
             }
         }, 1000);
     };
@@ -100,6 +122,18 @@ export const AuthScreen = ({ onLogin, onGuest }) => {
 
                 <h1 style={{ margin: '0 0 8px 0', fontSize: '24px', fontWeight: 'bold', color: 'white' }}>Springroll Team</h1>
                 <p style={{ margin: '0 0 24px 0', color: '#94a3b8', fontSize: '14px' }}>Sovereign Agentic Workstation</p>
+
+                {/* Error Message */}
+                {error && (
+                    <div style={{
+                        width: '100%', padding: '12px 16px', borderRadius: '12px', marginBottom: '16px',
+                        background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)',
+                        color: '#f87171', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '8px'
+                    }}>
+                        <AlertCircle size={16} />
+                        {error}
+                    </div>
+                )}
 
                 {/* Team Mode Toggle */}
                 <div style={{
@@ -217,11 +251,7 @@ export const AuthScreen = ({ onLogin, onGuest }) => {
                             placeholder="Username"
                             value={username}
                             onChange={e => setUsername(e.target.value)}
-                            style={{
-                                width: '100%', padding: '12px 16px', borderRadius: '12px',
-                                background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)',
-                                color: 'white', fontSize: '14px', outline: 'none', boxSizing: 'border-box'
-                            }}
+                            style={inputStyle}
                         />
                     </div>
                     <div style={{ marginBottom: '24px' }}>
@@ -230,11 +260,7 @@ export const AuthScreen = ({ onLogin, onGuest }) => {
                             placeholder="Password"
                             value={password}
                             onChange={e => setPassword(e.target.value)}
-                            style={{
-                                width: '100%', padding: '12px 16px', borderRadius: '12px',
-                                background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)',
-                                color: 'white', fontSize: '14px', outline: 'none', boxSizing: 'border-box'
-                            }}
+                            style={inputStyle}
                         />
                     </div>
                     <button
@@ -250,16 +276,12 @@ export const AuthScreen = ({ onLogin, onGuest }) => {
                     </button>
                 </form>
 
-                <div style={{ marginTop: '24px' }}>
-                    <button
-                        onClick={onGuest}
-                        style={{
-                            background: 'none', border: 'none', color: '#64748b',
-                            fontSize: '13px', cursor: 'pointer', textDecoration: 'underline'
-                        }}
-                    >
-                        Continue as Guest (Sovereign Mode)
-                    </button>
+                {/* Privacy Notice */}
+                <div style={{ marginTop: '24px', textAlign: 'center' }}>
+                    <p style={{ fontSize: '11px', color: '#64748b', lineHeight: 1.5 }}>
+                        🔒 Your data stays on your device.<br />
+                        Sign in is required to track usage only.
+                    </p>
                 </div>
             </div>
         </div>

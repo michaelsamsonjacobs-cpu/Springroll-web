@@ -1,6 +1,6 @@
 {
     "productName": "Springroll Team",
-    "version": "0.4.2",
+    "version": "0.5.1",
     "identifier": "ai.springroll.team",
     "build": {
         "beforeDevCommand": "npm run dev",
