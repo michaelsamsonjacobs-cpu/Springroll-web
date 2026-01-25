@@ -21,7 +21,6 @@ import WebLLMService from './services/WebLLMService';
 import { GrantAgentDashboard } from './components/GrantAgentDashboard';
 import FeedbackService from './services/FeedbackService';
 import { ShareWorkspaceModal } from './components/ShareWorkspaceModal';
-import { ShareWorkspaceModal } from './components/ShareWorkspaceModal';
 import { RalphAgentDashboard } from './components/RalphAgentDashboard';
 import { MobileOperator } from './components/MobileOperator';
 
