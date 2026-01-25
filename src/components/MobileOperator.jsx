@@ -44,7 +44,7 @@ export const MobileOperator = ({ onNavigate }) => {
                         <Zap size={18} className="text-white fill-current" />
                     </div>
                     <div className="leading-tight">
-                        <div className="text-xs font-bold font-sora tracking-wide">CLAWD.BOT</div>
+                        <div className="text-xs font-bold font-sora tracking-wide">SPRINGROLL</div>
                         <div className="text-[10px] text-green-400 font-mono">ONLINE • 98%</div>
                     </div>
                 </div>
