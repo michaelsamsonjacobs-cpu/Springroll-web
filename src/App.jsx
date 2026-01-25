@@ -21,7 +21,9 @@ import WebLLMService from './services/WebLLMService';
 import { GrantAgentDashboard } from './components/GrantAgentDashboard';
 import FeedbackService from './services/FeedbackService';
 import { ShareWorkspaceModal } from './components/ShareWorkspaceModal';
+import { ShareWorkspaceModal } from './components/ShareWorkspaceModal';
 import { RalphAgentDashboard } from './components/RalphAgentDashboard';
+import { MobileOperator } from './components/MobileOperator';
 
 // Runtime Tauri invoke detection - avoid static import that breaks web builds
 const invoke = typeof window !== 'undefined' && window.__TAURI__?.core?.invoke
@@ -32,7 +34,7 @@ import {
     Settings, MessageSquare, FileText, Target, Bot, Globe,
     Folder, Home, ChevronLeft, ChevronRight, Sparkles,
     Bell, Search, X, LayoutDashboard, Cpu, Server, Key, Check, AlertCircle, FolderPlus, Trash2, HelpCircle, Scale, Users, Award, Brain, Database,
-    Code, Layers
+    Code, Layers, Smartphone, Zap
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -46,6 +48,7 @@ const NAV_ITEMS = [
     { id: 'ralph', label: 'Ralph Agent', icon: Bot, color: '#f59e0b' },
     { id: 'grants', label: 'Opportunity Finder', icon: Target, color: '#10b981' },
     { id: 'gtm', label: 'GTM Agent', icon: Target, color: '#06b6d4' },
+    { id: 'mobile', label: 'Mobile Operator', icon: Smartphone, color: '#ec4899', isFloating: false },
     { id: 'help', label: 'Help Center', icon: HelpCircle, color: '#f59e0b' },
 ];
 
@@ -530,6 +533,12 @@ function App() {
                     {activeView === 'ralph' && (
                         <div style={{ height: '100%', overflow: 'hidden' }}>
                             <RalphAgentDashboard />
+                        </div>
+                    )}
+
+                    {activeView === 'mobile' && (
+                        <div style={{ height: '100%', overflow: 'hidden' }}>
+                            <MobileOperator onNavigate={(view) => setActiveView(view)} />
                         </div>
                     )}
                 </main>

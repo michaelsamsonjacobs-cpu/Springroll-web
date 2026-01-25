@@ -162,7 +162,8 @@
                 </svg>
             </div>
             <h3 class="text-2xl font-sora font-bold mb-4">How to Subscribe</h3>
-            <div class="text-left space-y-4 mb-8">
+            <div class="text-left space-y-8 mb-8">
+                <!-- Step 1 -->
                 <div class="flex gap-4 items-start">
                     <div
                         class="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-sm font-bold shrink-0">
@@ -173,32 +174,37 @@
                             or PayPal: <strong class="text-green-400">pay@springroll.ai</strong></p>
                     </div>
                 </div>
+
+                <!-- Step 2 -->
                 <div class="flex gap-4 items-start">
                     <div
                         class="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-sm font-bold shrink-0">
                         2</div>
-                    <div>
-                        <h4 class="font-bold text-white">Email Us Your Google Account</h4>
-                        <p class="text-sm text-slate-400">Send to <strong
-                                class="text-green-400">access@springroll.ai</strong> with your Google email you'll use
-                            to sign in.</p>
-                    </div>
-                </div>
-                <div class="flex gap-4 items-start">
-                    <div
-                        class="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-sm font-bold shrink-0">
-                        3</div>
-                    <div>
-                        <h4 class="font-bold text-white">Get Access Within 24 Hours</h4>
-                        <p class="text-sm text-slate-400">We'll activate your account and send you the download link.
-                        </p>
+                    <div class="w-full">
+                        <h4 class="font-bold text-white mb-2">Notify Us</h4>
+                        <p class="text-sm text-slate-400 mb-4">Enter the Google Email you want to use for sign-in.</p>
+
+                        <!-- Form -->
+                        <div id="payment-form" class="flex flex-col sm:flex-row gap-3">
+                            <input type="email" id="payment-email" placeholder="your.name@gmail.com"
+                                class="flex-1 bg-slate-900/50 border border-slate-700 rounded-lg px-4 py-3 text-white text-sm outline-none focus:border-blue-500 transition-colors">
+                            <button id="submit-btn" onclick="submitPayment()"
+                                class="bg-blue-600 hover:bg-blue-500 text-white px-6 py-3 rounded-lg text-sm font-bold transition-colors whitespace-nowrap">
+                                I've Paid
+                            </button>
+                        </div>
+
+                        <!-- Success State -->
+                        <div id="payment-success"
+                            class="hidden bg-green-500/10 border border-green-500/20 p-4 rounded-lg mt-2">
+                            <h5 class="text-green-400 font-bold text-sm mb-1">Received! 🎉</h5>
+                            <p class="text-xs text-slate-400">We've received your notification. Your access will be
+                                active within 24 hours.</p>
+                        </div>
                     </div>
                 </div>
             </div>
-            <a href="mailto:access@springroll.ai?subject=New%20Subscription&body=Hi!%20I%20just%20paid%20for%20Springroll%20Team.%0A%0AMy%20Google%20account%20email%20is:%20"
-                class="inline-block bg-green-600 text-white px-8 py-3 rounded-xl font-bold hover:bg-green-500 transition-colors">
-                📧 Email Us After Payment
-            </a>
+
         </div>
 
         <!-- Enterprise CTA -->
@@ -220,6 +226,58 @@
     </footer>
 
     <script src="js/auth.js"></script>
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js';
+        import { getFirestore, doc, setDoc } from 'https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js';
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyDaqDdWnZOeL2MXbc__eUA4dlb1Fs8-na0",
+            authDomain: "springroll-171de.firebaseapp.com",
+            projectId: "springroll-171de"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        window.submitPayment = async () => {
+            const emailInput = document.getElementById('payment-email');
+            const email = emailInput.value.trim().toLowerCase();
+            const btn = document.getElementById('submit-btn');
+
+            if (!email || !email.includes('@')) {
+                alert('Please enter a valid Google email address');
+                return;
+            }
+
+            // Simple validation for Google accounts mainly
+            // if (!email.endsWith('@gmail.com') && !email.endsWith('@google.com')) {
+            //    // Optional: Warn if not a google email?
+            // }
+
+            btn.disabled = true;
+            btn.textContent = 'Submitting...';
+
+            try {
+                // Add to 'payment_notifications' collection
+                await setDoc(doc(db, 'payment_notifications', email), {
+                    email: email,
+                    timestamp: new Date().toISOString(),
+                    status: 'pending',
+                    source: 'pricing_page'
+                });
+
+                // Show success UI
+                document.getElementById('payment-form').classList.add('hidden');
+                document.getElementById('payment-success').classList.remove('hidden');
+
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Something went wrong. Please try again.');
+                btn.disabled = false;
+                btn.textContent = "I've Paid";
+            }
+        };
+    </script>
 </body>
 
 </html>
