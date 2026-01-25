@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Sparkles, AlertCircle, Users, Shield, User, Lock, ExternalLink } from 'lucide-react';
 import { ClassroomService } from '../services/ClassroomService';
-import { signInWithPopup } from 'firebase/auth';
+import { signInWithRedirect, getRedirectResult } from 'firebase/auth';
 import { auth, googleProvider } from '../firebaseConfig';
 import { checkAccess, getPurchaseUrl } from '../services/AccessControlService';
 
@@ -16,42 +16,61 @@ export const AuthScreen = ({ onLogin }) => {
     const [accessDenied, setAccessDenied] = useState(false);
     const [deniedEmail, setDeniedEmail] = useState('');
 
+    // Check for redirect result on mount
+    React.useEffect(() => {
+        const checkRedirect = async () => {
+            try {
+                const result = await getRedirectResult(auth);
+                if (result) {
+                    setIsLoading(true);
+                    await handleUserResult(result.user);
+                }
+            } catch (err) {
+                console.error('Redirect Auth Error:', err);
+                setError(err.message);
+                setIsLoading(false);
+            }
+        };
+        checkRedirect();
+    }, []);
+
+    const handleUserResult = async (user) => {
+        // Check if user is whitelisted (paying customer)
+        const hasAccess = await checkAccess(user.email);
+        if (!hasAccess) {
+            setAccessDenied(true);
+            setDeniedEmail(user.email);
+            setIsLoading(false);
+            return;
+        }
+
+        if (teamMode) {
+            ClassroomService.setClassroomPath(classroomPath || 'BUS301');
+            ClassroomService.setRole(role);
+            if (role === 'student') {
+                ClassroomService.setStudentName(user.displayName || 'Student');
+            }
+        }
+
+        onLogin({
+            type: 'google',
+            name: user.displayName || 'Google User',
+            email: user.email,
+            uid: user.uid,
+            photoURL: user.photoURL,
+            role: teamMode ? role : 'personal'
+        });
+        setIsLoading(false);
+    };
+
     const handleGoogleLogin = async () => {
         setIsLoading(true);
         setError(null);
         try {
-            const result = await signInWithPopup(auth, googleProvider);
-            const user = result.user;
-
-            // Check if user is whitelisted (paying customer)
-            const hasAccess = await checkAccess(user.email);
-            if (!hasAccess) {
-                setAccessDenied(true);
-                setDeniedEmail(user.email);
-                setIsLoading(false);
-                return;
-            }
-
-            if (teamMode) {
-                ClassroomService.setClassroomPath(classroomPath || 'BUS301');
-                ClassroomService.setRole(role);
-                if (role === 'student') {
-                    ClassroomService.setStudentName(user.displayName || 'Student');
-                }
-            }
-
-            onLogin({
-                type: 'google',
-                name: user.displayName || 'Google User',
-                email: user.email,
-                uid: user.uid,
-                photoURL: user.photoURL,
-                role: teamMode ? role : 'personal'
-            });
+            await signInWithRedirect(auth, googleProvider);
         } catch (err) {
             console.error('Google Sign-In Error:', err);
             setError(err.message || 'Failed to sign in with Google');
-        } finally {
             setIsLoading(false);
         }
     };
