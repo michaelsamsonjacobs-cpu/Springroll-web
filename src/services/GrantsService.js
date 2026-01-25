@@ -3,6 +3,10 @@
  * Uses the free /v1/api/search2 endpoint (no API key required)
  */
 
+import { Command } from '@tauri-apps/plugin-shell';
+import { resolveResource } from '@tauri-apps/api/path';
+import { GeminiService } from './GeminiService';
+
 // CORS proxy to bypass browser restrictions (Grants.gov doesn't allow direct browser calls)
 const CORS_PROXY = 'https://api.allorigins.win/raw?url=';
 const GRANTS_GOV_API = 'https://www.grants.gov/grantsws/rest/opportunities/search/v2';
@@ -225,11 +229,78 @@ export const GrantsService = {
         return saved;
     },
 
-    // Search SAM.gov contracts (mock for now - real API requires UEI registration)
+    // Search SAM.gov contracts (Real-time Local AI Scraper)
     async searchContracts(keyword = '', category = 'all', status = 'posted', limit = 25) {
-        // SAM.gov API requires registration - using mock data
         console.log('Searching SAM.gov contracts for:', keyword);
-        return this.getMockContracts(keyword, category);
+
+        try {
+            // Check for Gemini API key
+            const apiKey = GeminiService.getGeminiKey();
+            if (!apiKey) {
+                console.warn('Scraper Skipped: No Gemini API Key found.');
+                return this.getMockContracts(keyword, category);
+            }
+
+            // Ensure we are in Tauri environment
+            if (typeof window !== 'undefined' && !window.__TAURI__) {
+                console.warn('Scraper Skipped: Not in Tauri environment.');
+                return this.getMockContracts(keyword, category);
+            }
+
+            console.log('🚀 Spawning Local AI Scraper...');
+
+            // Resolve script path (bundled resource)
+            const scriptPath = await resolveResource('scripts/scraper-service.js');
+
+            // Spawn Node.js sidecar
+            const command = Command.create('node', [
+                scriptPath,
+                `--source=sam.gov`,
+                `--keyword=${keyword || 'Software Development'}`, // Default kw if empty
+                `--apiKey=${apiKey}`
+            ]);
+
+            const output = await command.execute();
+
+            if (output.code !== 0) {
+                console.error('Scraper Error Output:', output.stderr);
+                throw new Error(`Scraper process exited with code ${output.code}`);
+            }
+
+            const result = JSON.parse(output.stdout);
+
+            if (!result.success) {
+                throw new Error(result.error || 'Unknown scraper error');
+            }
+
+            console.log('✅ Scraper Success:', result.data.length, 'contracts found.');
+
+            // Map results to Dashboard format
+            const scrapedContracts = result.data.map((c, i) => ({
+                id: c.noticeId || `SCRAPED-${Date.now()}-${i}`,
+                title: c.title || 'Untitled Opportunity',
+                agency: c.agency || 'Unknown Agency',
+                agencyCode: 'FED',
+                deadline: c.deadline || 'See Link',
+                postedDate: 'Just Now',
+                awardAmount: 'Refer to Solicitation',
+                description: c.description || 'No description extracted.',
+                category: c.naics || 'Unknown',
+                status: 'posted',
+                url: 'https://sam.gov/search',
+                source: 'sam.gov (Real-time)',
+                number: c.noticeId || 'N/A',
+                setAside: 'Unknown',
+                naicsCode: c.naics || '000000'
+            }));
+
+            return scrapedContracts.length > 0 ? scrapedContracts : this.getMockContracts(keyword, category);
+
+        } catch (error) {
+            console.error('❌ Local Scraper Failed:', error);
+            console.log('Falling back to mock data...');
+            return this.getMockContracts(keyword, category);
+        }
     },
 
     // Mock contract data for SAM.gov

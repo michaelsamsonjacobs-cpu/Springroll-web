@@ -36,6 +36,9 @@
         "shortDescription": "Sovereign AI Agentic Workstation",
         "longDescription": "",
         "copyright": "",
-        "category": "Productivity"
+        "category": "Productivity",
+        "resources": [
+            "../scripts/scraper-service.js"
+        ]
     }
 }
