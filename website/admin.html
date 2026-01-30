@@ -99,7 +99,21 @@
 
                 loadUsers();
                 loadWaitlist();
-                alert('🚀 Approved and whitelisted: ' + email);
+
+                // 3. Open Email Template
+                const subject = encodeURIComponent("Your Springroll Team access is live! 🚀");
+                const body = encodeURIComponent(
+                    "Welcome to Springroll Team!\n\n" +
+                    "Your access has been enabled. You can now sign in using your Google account.\n\n" +
+                    "Download the latest build here (Windows):\n" +
+                    "https://github.com/michaelsamsonjacobs-cpu/Springroll-web/releases/latest\n\n" +
+                    "Need help? Check the members portal at https://springroll.ai/members.html\n\n" +
+                    "Enjoy,\n" +
+                    "Springroll Team"
+                );
+                window.location.href = `mailto:${email}?subject=${subject}&body=${body}`;
+
+                alert('🚀 Approved and whitelisted: ' + email + '\n\nInvitation email prepared.');
             } catch (e) {
                 alert('Error: ' + e.message);
             }
