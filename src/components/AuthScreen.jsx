@@ -1,84 +1,33 @@
 import React, { useState } from 'react';
-import { Sparkles, AlertCircle, Users, Shield, User, Lock, ExternalLink } from 'lucide-react';
+import { Sparkles, ArrowRight, Check, AlertCircle, Users, FolderOpen, Shield, User } from 'lucide-react';
 import { ClassroomService } from '../services/ClassroomService';
-import { signInWithRedirect, getRedirectResult } from 'firebase/auth';
-import { auth, googleProvider } from '../firebaseConfig';
-import { checkAccess, getPurchaseUrl } from '../services/AccessControlService';
 
-export const AuthScreen = ({ onLogin }) => {
+export const AuthScreen = ({ onLogin, onGuest }) => {
     const [isLoading, setIsLoading] = useState(false);
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const [teamMode, setTeamMode] = useState(false);
-    const [role, setRole] = useState('student');
+    const [role, setRole] = useState('student'); // 'admin' or 'student'
     const [classroomPath, setClassroomPath] = useState('');
-    const [error, setError] = useState(null);
-    const [accessDenied, setAccessDenied] = useState(false);
-    const [deniedEmail, setDeniedEmail] = useState('');
 
-    // Check for redirect result on mount
-    React.useEffect(() => {
-        const checkRedirect = async () => {
-            try {
-                const result = await getRedirectResult(auth);
-                if (result) {
-                    setIsLoading(true);
-                    await handleUserResult(result.user);
-                }
-            } catch (err) {
-                console.error('Redirect Auth Error:', err);
-                setError(err.message);
-                setIsLoading(false);
-            }
-        };
-        checkRedirect();
-    }, []);
-
-    const handleUserResult = async (user) => {
-        // Check if user is whitelisted (paying customer)
-        const hasAccess = await checkAccess(user.email);
-        if (!hasAccess) {
-            setAccessDenied(true);
-            setDeniedEmail(user.email);
-            setIsLoading(false);
-            return;
-        }
-
-        if (teamMode) {
-            ClassroomService.setClassroomPath(classroomPath || 'BUS301');
-            ClassroomService.setRole(role);
-            if (role === 'student') {
-                ClassroomService.setStudentName(user.displayName || 'Student');
-            }
-        }
-
-        onLogin({
-            type: 'google',
-            name: user.displayName || 'Google User',
-            email: user.email,
-            uid: user.uid,
-            photoURL: user.photoURL,
-            role: teamMode ? role : 'personal'
-        });
-        setIsLoading(false);
-    };
-
-    const handleGoogleLogin = async () => {
+    const handleGoogleLogin = () => {
         setIsLoading(true);
-        setError(null);
-        try {
-            await signInWithRedirect(auth, googleProvider);
-        } catch (err) {
-            console.error('Google Sign-In Error:', err);
-            setError(err.message || 'Failed to sign in with Google');
+        setTimeout(() => {
             setIsLoading(false);
-        }
+            if (teamMode) {
+                ClassroomService.setClassroomPath(classroomPath || 'BUS301');
+                ClassroomService.setRole(role);
+                if (role === 'student') {
+                    ClassroomService.setStudentName(username || 'Student');
+                }
+            }
+            onLogin({ type: 'google', name: 'Google User', role: teamMode ? role : 'personal' });
+        }, 1500);
     };
 
     const handleLocalLogin = (e) => {
         e.preventDefault();
         setIsLoading(true);
-        setError(null);
         setTimeout(() => {
             setIsLoading(false);
             if (username && password) {
@@ -90,8 +39,6 @@ export const AuthScreen = ({ onLogin }) => {
                     }
                 }
                 onLogin({ type: 'local', name: username, role: teamMode ? role : 'personal' });
-            } else {
-                setError('Please enter username and password');
             }
         }, 1000);
     };
@@ -101,109 +48,6 @@ export const AuthScreen = ({ onLogin }) => {
         background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)',
         color: 'white', fontSize: '14px', outline: 'none', boxSizing: 'border-box'
     };
-
-    // Access Denied Screen
-    if (accessDenied) {
-        return (
-            <div style={{
-                height: '100vh',
-                width: '100vw',
-                background: '#050816',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontFamily: "'Inter', sans-serif",
-                position: 'relative',
-                overflow: 'hidden'
-            }}>
-                {/* Background Gradients */}
-                <div style={{
-                    position: 'absolute', top: '-20%', left: '-10%',
-                    width: '600px', height: '600px',
-                    background: 'radial-gradient(circle, rgba(239,68,68,0.15) 0%, rgba(0,0,0,0) 70%)',
-                    borderRadius: '50%', pointerEvents: 'none'
-                }} />
-
-                <div style={{
-                    width: '420px',
-                    padding: '40px',
-                    background: 'rgba(10,15,26,0.7)',
-                    backdropFilter: 'blur(12px)',
-                    borderRadius: '24px',
-                    border: '1px solid rgba(239,68,68,0.2)',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)',
-                    textAlign: 'center'
-                }}>
-                    <div style={{
-                        width: '64px', height: '64px', borderRadius: '16px',
-                        background: 'linear-gradient(135deg, #ef4444, #f97316)',
-                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        marginBottom: '24px',
-                        boxShadow: '0 0 20px rgba(239,68,68,0.3)'
-                    }}>
-                        <Lock size={32} color="white" />
-                    </div>
-
-                    <h1 style={{ margin: '0 0 8px 0', fontSize: '24px', fontWeight: 'bold', color: 'white' }}>
-                        Purchase Required
-                    </h1>
-                    <p style={{ margin: '0 0 24px 0', color: '#94a3b8', fontSize: '14px', lineHeight: 1.6 }}>
-                        Your account <strong style={{ color: '#f87171' }}>{deniedEmail}</strong> does not have access to Springroll Team.
-                    </p>
-
-                    <a
-                        href={getPurchaseUrl()}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        style={{
-                            width: '100%',
-                            padding: '14px',
-                            borderRadius: '12px',
-                            border: 'none',
-                            background: 'linear-gradient(135deg, #3b82f6, #a855f7)',
-                            color: 'white',
-                            fontSize: '14px',
-                            fontWeight: 'bold',
-                            cursor: 'pointer',
-                            textDecoration: 'none',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            gap: '8px',
-                            marginBottom: '16px'
-                        }}
-                    >
-                        <ExternalLink size={16} /> Purchase Access
-                    </a>
-
-                    <button
-                        onClick={() => {
-                            setAccessDenied(false);
-                            setDeniedEmail('');
-                        }}
-                        style={{
-                            background: 'none',
-                            border: 'none',
-                            color: '#64748b',
-                            fontSize: '13px',
-                            cursor: 'pointer',
-                            textDecoration: 'underline'
-                        }}
-                    >
-                        Try a different account
-                    </button>
-
-                    <p style={{ marginTop: '24px', fontSize: '11px', color: '#64748b', lineHeight: 1.6 }}>
-                        After purchase, we'll create your account within <strong style={{ color: '#a855f7' }}>24 hours</strong><br />
-                        and send you a download link for the software.
-                    </p>
-                </div>
-            </div>
-        );
-    }
 
     return (
         <div style={{
@@ -256,18 +100,6 @@ export const AuthScreen = ({ onLogin }) => {
 
                 <h1 style={{ margin: '0 0 8px 0', fontSize: '24px', fontWeight: 'bold', color: 'white' }}>Springroll Team</h1>
                 <p style={{ margin: '0 0 24px 0', color: '#94a3b8', fontSize: '14px' }}>Sovereign Agentic Workstation</p>
-
-                {/* Error Message */}
-                {error && (
-                    <div style={{
-                        width: '100%', padding: '12px 16px', borderRadius: '12px', marginBottom: '16px',
-                        background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)',
-                        color: '#f87171', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '8px'
-                    }}>
-                        <AlertCircle size={16} />
-                        {error}
-                    </div>
-                )}
 
                 {/* Team Mode Toggle */}
                 <div style={{
@@ -385,7 +217,11 @@ export const AuthScreen = ({ onLogin }) => {
                             placeholder="Username"
                             value={username}
                             onChange={e => setUsername(e.target.value)}
-                            style={inputStyle}
+                            style={{
+                                width: '100%', padding: '12px 16px', borderRadius: '12px',
+                                background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)',
+                                color: 'white', fontSize: '14px', outline: 'none', boxSizing: 'border-box'
+                            }}
                         />
                     </div>
                     <div style={{ marginBottom: '24px' }}>
@@ -394,7 +230,11 @@ export const AuthScreen = ({ onLogin }) => {
                             placeholder="Password"
                             value={password}
                             onChange={e => setPassword(e.target.value)}
-                            style={inputStyle}
+                            style={{
+                                width: '100%', padding: '12px 16px', borderRadius: '12px',
+                                background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)',
+                                color: 'white', fontSize: '14px', outline: 'none', boxSizing: 'border-box'
+                            }}
                         />
                     </div>
                     <button
@@ -410,12 +250,16 @@ export const AuthScreen = ({ onLogin }) => {
                     </button>
                 </form>
 
-                {/* Privacy Notice */}
-                <div style={{ marginTop: '24px', textAlign: 'center' }}>
-                    <p style={{ fontSize: '11px', color: '#64748b', lineHeight: 1.5 }}>
-                        🔒 Your data stays on your device.<br />
-                        Sign in is required to track usage only.
-                    </p>
+                <div style={{ marginTop: '24px' }}>
+                    <button
+                        onClick={onGuest}
+                        style={{
+                            background: 'none', border: 'none', color: '#64748b',
+                            fontSize: '13px', cursor: 'pointer', textDecoration: 'underline'
+                        }}
+                    >
+                        Continue as Guest (Sovereign Mode)
+                    </button>
                 </div>
             </div>
         </div>
